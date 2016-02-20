@@ -79,11 +79,9 @@ void block() {
 
 		getNextToken();
 
-		while( token != parenthleft ) {
-
-			declarations();
-			getNextToken();
-		}
+		// Todo: Maybe this needs a 'while-loop' - or maybe it's needed
+		// inside the 'declarations' function:
+		declarations();
 
 		subprograms();
 		sequence();
@@ -664,8 +662,8 @@ void condition() {
 
 	while ( token == or_a ) {
 
-			boolterm();
-			getNextToken();
+		boolterm();
+		getNextToken();
 
 	}
 }
@@ -697,10 +695,11 @@ void term() {
 	getNextToken();
 
 	while ( token == multipl || token == divide ){
+
 		mul_oper();
 		factor();
-	}
 
+	}
 }
 
 void factor() {
@@ -793,6 +792,15 @@ void optionalSign() {
 void getNextToken() {
 
 	token = lex();
+
+	// int tempToken;
+	// tempToken = lex();
+
+	// if ( tempToken != STATE_EOF ){
+	// 	token = tempToken;
+	// } else {
+	// 	error("The tokenizer has reached the end of the encoded output data.\n\n");
+	// }
 
 	// For debugging:
 	printf("Get next token: %d\n", token);

@@ -26,7 +26,9 @@ int main(int argc, char *argv[]) {
 	// Open the file stream into the file pointer:
 	fp = fopen(argv[1], "r");
 
-	printf("Status: Input File Opened for Parsing.\n\n");
+	printf("--------------------------------------\n");
+	printf("Status: Input File Opened for Parsing.\n");
+	printf("--------------------------------------\n\n");
 
 	// Start lex for the first time (it's going to make the analysis by itself) - and take the first token:
 	token = lex();

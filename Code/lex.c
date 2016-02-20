@@ -52,7 +52,9 @@ int lex(){
 		if(stateAnalyzerReturnStatus == STATE_EOF){
 
 			// Return the final lexicographical translation:
-			printf("Status: File Reading is Over.\n\n");
+			printf("-----------------------------\n");
+			printf("Status: File Reading is Over.\n");
+			printf("-----------------------------\n\n");
 			printf("Result: The LexOutput is '%s' \n\n", lexOutput);
 			printf("Result: The EncodedOutput is '%s' \n\n", encodedOutput);
 
@@ -72,17 +74,27 @@ int lex(){
 		// Note: When you pass the NULL-pointer as the first 'strtok' argument, it continues the parsing
 		// from the place it was left at the first time. So, from now on, every time we call it, we will
 		// get the next token of the 'encodedOutput' that is delimited by whitespace:
-		
-		nextToken = atol(strtok(NULL, " "));
 
-		printf("Next token: %d \n", nextToken);
+		char * tempTokenizerOutput;
+		tempTokenizerOutput = strtok(NULL, " ");
 
-		return( nextToken );
+		if ( tempTokenizerOutput != NULL ) {
+
+			nextToken = atol(tempTokenizerOutput);
+			printf("Next token: %d \n", nextToken);
+			return( nextToken );
+
+		} else {
+
+			printf("Debug: The TOKENIZER has reached the END of input!\n\n");
+			return( STATE_EOF );
+
+		}
 
 	}
 
-	//End:
-	return(EOF);
+	// The code (probably) never reaches this point:
+	return(0);
 
 }
 
@@ -110,7 +122,7 @@ int stateAnalyzer (FILE *input, char *output, char *encodedOutput) {
 		character2 = peek(input);
 
 		// Debug:
-		printf("State: State %d \n", state);
+		printf("State: %d \n", state);
 		printf("Character 1 = '%c' \n", character1);
 		printf("Character 2 = '%c' \n\n", character2);
 
