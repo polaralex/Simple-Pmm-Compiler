@@ -686,8 +686,6 @@ void actualparlist() {
 
 	printf("Syntax Debug: Inside actualparlist.\n\n");
 
-	getNextToken();
-
 	actualparitem();
 
 	while ( peekToken == comma || peekToken == in_a || peekToken == inout_a ) {

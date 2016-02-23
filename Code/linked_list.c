@@ -107,5 +107,4 @@ int remove_by_index(node_t ** head, int n) {
     free(temp_node);
 
     return retval;
-
 }
