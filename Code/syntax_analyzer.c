@@ -45,8 +45,8 @@ void getNextToken();
 
 void program() {
 
-	printf("Syntax Debug: Inside program.\n");
-	printf("Syntax-Analyzer Debug: Token is %d \n\n", token);
+	printf("Syntax Debug: Inside program. ");
+	printf("Token is %d (peeked is %d)\n", token, peekToken);
 
 	if( token == program_a ){
 
@@ -214,17 +214,17 @@ void boolFactor() {
 
 	if (token == not_a) {
 
-		token = lex();
+		getNextToken();
 		condition();
 
 	} else if ( token == parenthleft ) {
 
-		token = lex();
+		getNextToken();
 		condition();
 
 		if ( token == parenthright ) {
 
-			token = lex();
+			getNextToken();
 
 		} else {
 
@@ -346,7 +346,7 @@ void formalParList() {
 	// Let's see about it...
 	// Also: Maybe I can do this recursively (Haskell-style)
 	// by calling formalParList itself
-	while ( token == comma ) {
+	while ( peekToken == comma ) {
 
 		formalParItem();
 		getNextToken();
@@ -793,16 +793,7 @@ void getNextToken() {
 
 	token = lex();
 
-	// int tempToken;
-	// tempToken = lex();
-
-	// if ( tempToken != STATE_EOF ){
-	// 	token = tempToken;
-	// } else {
-	// 	error("The tokenizer has reached the end of the encoded output data.\n\n");
-	// }
-
 	// For debugging:
-	printf("Get next token: %d\n", token);
+	printf("Got next token: %d (and peeked: %d)\n\n", token, peekToken);
 
 }

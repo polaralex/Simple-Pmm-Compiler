@@ -20,6 +20,7 @@ const char validCharacters[74] = {'a','b','c','d','e','f','g','h','i','j','k','l
 							'0','1','2','3','4','5','6','7','8','9',
 							'+','-','*','/','<','>','=',':',';',',','{','}'};
 
+// If the parameter "actionRequest" is "2", "lex" will return the Peeked next Token:
 int lex(){
 
 	// Temporary variable:
@@ -38,10 +39,12 @@ int lex(){
 	// Used for strtol():
 	char tempCharArray[256];
 
-	printf("Starting lex. Analysis Done is: %d \n\n", analysis_done);
+	printf(" \n");
 
 	// If analysis isn't done yet, analyse. Else, return the next token:
 	if (analysis_done == 0) {
+
+		printf("Starting lex. Analysis Done is: %d \n\n", analysis_done);
 
 		stateAnalyzerReturnStatus = stateAnalyzer(fp, lexOutput, encodedOutput);
 
@@ -58,8 +61,18 @@ int lex(){
 			printf("Result: The LexOutput is '%s' \n\n", lexOutput);
 			printf("Result: The EncodedOutput is '%s' \n\n", encodedOutput);
 
-			// Here begins the tokenization of th encodedOutput string:
+			// Here begins the tokenization of the encodedOutput string:
 			nextToken = atol(strtok(encodedOutput, " "));
+
+			// And here we fill the peekToken for the first time:
+			char * tempTokenizerOutput;
+			tempTokenizerOutput = strtok(NULL, " ");
+
+			if ( tempTokenizerOutput != NULL ) {
+				peekToken = atol(tempTokenizerOutput);
+			} else {
+				peekToken = STATE_EOF;
+			}
 
 			return ( nextToken );
 
@@ -69,28 +82,38 @@ int lex(){
 
 		}
 
-	} else {
+	} else if ( analysis_done == 1 ) {
 
 		// Note: When you pass the NULL-pointer as the first 'strtok' argument, it continues the parsing
 		// from the place it was left at the first time. So, from now on, every time we call it, we will
 		// get the next token of the 'encodedOutput' that is delimited by whitespace:
 
-		char * tempTokenizerOutput;
-		tempTokenizerOutput = strtok(NULL, " ");
+		// First, we move the peekToken to the nextToken to serve it to any function that requires it:
+		nextToken = peekToken;
 
-		if ( tempTokenizerOutput != NULL ) {
+		if ( nextToken != STATE_EOF ) {
 
-			nextToken = atol(tempTokenizerOutput);
+			// Then, we fill the now empty 'peekToken' with the up-next Token in the series:
+			char * tempTokenizerOutput;
+			tempTokenizerOutput = strtok(NULL, " ");
+			
+			if( tempTokenizerOutput != NULL ) {
+				peekToken = atol(tempTokenizerOutput);
+			} else {
+				peekToken = STATE_EOF;
+			}
+
 			printf("Next token: %d \n", nextToken);
+			printf("Peek token: %d \n\n", peekToken);
+
 			return( nextToken );
 
 		} else {
 
 			printf("Debug: The TOKENIZER has reached the END of input!\n\n");
+			peekToken = STATE_EOF;
 			return( STATE_EOF );
-
 		}
-
 	}
 
 	// The code (probably) never reaches this point:

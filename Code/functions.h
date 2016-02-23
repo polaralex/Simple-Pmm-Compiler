@@ -1,4 +1,4 @@
-extern int lex(void);
+extern int lex();
 
 void error(char *string);
 
@@ -9,6 +9,7 @@ void error(char *string){
 // Global file pointer and Token variable:
 static FILE *fp;
 static int token;
+static int peekToken;
 
 // Global parsing output character arrays:
 static char lexOutput[BIG_CHARACTER_ARRAY_LENGTH];
