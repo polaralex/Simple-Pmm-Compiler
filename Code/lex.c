@@ -39,11 +39,10 @@ int lex(){
 	// Used for strtol():
 	char tempCharArray[256];
 
-	printf(" \n");
-
 	// If analysis isn't done yet, analyse. Else, return the next token:
 	if (analysis_done == 0) {
 
+		printf(" \n");
 		printf("Starting lex. Analysis Done is: %d \n\n", analysis_done);
 
 		stateAnalyzerReturnStatus = stateAnalyzer(fp, lexOutput, encodedOutput);

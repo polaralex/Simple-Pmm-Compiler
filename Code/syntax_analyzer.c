@@ -35,6 +35,7 @@ void func();
 void formalPars();
 void formalParList();
 void step_part();
+void brackets_seq();
 
 // Helper Functions:
 void getNextToken();
@@ -45,14 +46,14 @@ void getNextToken();
 
 void program() {
 
-	printf("Syntax Debug: Inside program. ");
+	printf("Syntax Debug: Inside program.\n\n");
 	printf("Token is %d (peeked is %d)\n", token, peekToken);
 
 	if( token == program_a ){
 
 		getNextToken();
 
-		if (token == VARIABLE ) {
+		if ( token == VARIABLE ) {
 
 			block();
 
@@ -71,39 +72,30 @@ void program() {
 
 void block() {
 
-	printf("Syntax Debug: Inside Block.\n");
+	printf("Syntax Debug: Inside Block.\n\n");
 
 	getNextToken();
 
 	if (token == curlbrackleft) {
 
-		getNextToken();
-
-		// Todo: Maybe this needs a 'while-loop' - or maybe it's needed
-		// inside the 'declarations' function:
-		declarations();
+		while ( peekToken == VARIABLE ){
+			declarations();
+		}
 
 		subprograms();
 		sequence();
 
 		getNextToken();
 
-		if( token == curlbrackright ) {
-
-			getNextToken();
-
-		} else {
-
+		if( token != curlbrackright ) {
 			error("The keyword 'begin' was expected.");
-
 		}
 	}
-
 }
 
 void declarations() {
 
-	printf("Syntax Debug: Inside declarations.\n");
+	printf("Syntax Debug: Inside declarations.\n\n");
 
 	getNextToken();
 
@@ -113,49 +105,41 @@ void declarations() {
 
 		getNextToken();
 
-		if ( token == semicolon ){
-
-			getNextToken();
-
-		} else {
-
+		if ( token != semicolon ){
 			error("Semicolon required at the end of variable declarations.");
-		
 		}
 	}
-
 }
 
 void varlist() {
 
-	printf("Syntax Debug: Inside varlist.\n");
+	printf("Syntax Debug: Inside varlist.\n\n");
 
-	getNextToken();
+	if (peekToken == VARIABLE) {
 
-	if (token == var_a) {
-
+		// Consume the 'var':
 		getNextToken();
 
-		while ( token == comma || token == var_a ) {
+		while ( peekToken == comma || peekToken == VARIABLE ) {
 
-			if ( token == comma ) {
+			if ( peekToken == comma ) {
 
+				// Consume the 'comma':
 				getNextToken();
 
-				if ( token == var_a ){
+				if ( peekToken != VARIABLE ) {
 
-					getNextToken();
+					error("Excess commas found in variable declarations.");
 
 				} else {
 
-					error("Excess commas found in variable declarations.");
-				
+					getNextToken();
+
 				}
 
 			} else {
 
 				error("Comma needed between variable declarations.");
-
 			}
 		}
 	}
@@ -163,7 +147,7 @@ void varlist() {
 
 void if_stat() {
 
-	printf("Syntax Debug: Inside if_stat.\n");
+	printf("Syntax Debug: Inside if_stat.\n\n");
 
 	getNextToken();
 
@@ -175,32 +159,28 @@ void if_stat() {
 
 			condition();
 
-			if ( token == parenthright ){
+			getNextToken();
 
-				getNextToken();
-
-			} else {
+			if ( token != parenthright ){
 
 				error("'If statement' parenthesis not closed.");
-			
-			}
 
+			}
 		}
 
 		brack_or_stat();
 		elsepart();
-
 	}
-
 }
 
 void elsepart(){
 
-	printf("Syntax Debug: Inside elsepart.\n");
+	printf("Syntax Debug: Inside elsepart.\n\n");
 
-	getNextToken();
+	if ( peekToken == else_a) {
 
-	if (token == else_a) {
+		// Consume the "else" token:
+		getNextToken();
 
 		brack_or_stat();
 
@@ -210,28 +190,49 @@ void elsepart(){
 
 void boolFactor() {
 
-	printf("Syntax Debug: Inside boolFactor.\n");
+	printf("Syntax Debug: Inside boolFactor.\n\n");
 
-	if (token == not_a) {
+	getNextToken();
+
+	// Case 1:
+	if (peekToken == not_a) {
+
+		// Consume 'not' token:
+		getNextToken();
 
 		getNextToken();
-		condition();
 
-	} else if ( token == parenthleft ) {
+		if (token == bracketleft) {
 
-		getNextToken();
-		condition();
-
-		if ( token == parenthright ) {
+			condition();
 
 			getNextToken();
 
-		} else {
+			if (token != bracketright) {
+				error("Right Bracket expected in closing of 'boolFactor'.");
+			}
 
-			error("Right Bracket expected.");
+		} else {
+			error("Opening Bracket needed after 'not' statement.");
+		}
+
+	// Case 2:
+	} else if ( peekToken == bracketleft ) {
+
+		// Consume 'left bracketToken'
+		getNextToken();
+
+		condition();
+
+		getNextToken();
+
+		if ( token != bracketright ) {
+
+			error("Right Bracket expected after Opening Bracket.");
 
 		}
 
+	// Case 3:
 	} else {
 
 		expression();
@@ -244,36 +245,32 @@ void boolFactor() {
 
 void expression() {
 
-	printf("Syntax Debug: Inside expression.\n");
+	printf("Syntax Debug: Inside expression.\n\n");
 
 	optionalSign();
 	term();
 
-	getNextToken();
-
-	while (token == plus || token == minus) {
+	while (peekToken == plus || peekToken == minus) {
 
 		add_oper();
 		term();
-
-		getNextToken();
 
 	}
 }
 
 void subprograms() {
 
-	printf("Syntax Debug: Inside Subprograms.\n");
+	printf("Syntax Debug: Inside Subprograms.\n\n");
 
-	// To-do: How to do this loop?
-	func();
-
+	while ( peekToken == procedure_a || peekToken == function_a ) {
+		func();
+	}
 }
 
 
 void func() {
 
-	printf("Syntax Debug: Inside func.\n");
+	printf("Syntax Debug: Inside func.\n\n");
 
 	getNextToken();
 
@@ -296,12 +293,16 @@ void func() {
 			funcBody();
 
 		}
+
+	} else {
+
+		error("Function declaration (procedure or function) needed.");
 	}
 }
 
 void funcBody() {
 
-	printf("Syntax Debug: Inside funcBody.\n");
+	printf("Syntax Debug: Inside funcBody.\n\n");
 
 	formalPars();
 	block();
@@ -310,60 +311,67 @@ void funcBody() {
 
 void formalPars() {
 
-	printf("Syntax Debug: Inside formalPars.\n");
+	printf("Syntax Debug: Inside formalPars.\n\n");
 
 	getNextToken();
 
 	if ( token == parenthleft ) {
 
-		getNextToken();
-
-		if ( token != parenthright ) {
+		if ( peekToken == in_a || peekToken == inout_a ) {
 
 			formalParList();
 
+			getNextToken();
+
+			if ( token != parenthright ) {
+				error("No closing parenthesis found after opening for Parameters definition.");
+			}
+
+		} else {
+
+			getNextToken();
+
+			if ( token != parenthright ) {
+				error("No closing parenthesis found after opening for Parameters definition.");
+			}
 		}
-	}
-
-	getNextToken();
-
-	if ( token != parenthright ) {
-
-		error("No closing parenthesis found.");
-
 	}
 }
 
 void formalParList() {
 
-	printf("Syntax Debug: Inside formalParList.\n");
+	printf("Syntax Debug: Inside formalParList.\n\n");
 
 	formalParItem();
 
-	getNextToken();
+	while ( peekToken == comma || peekToken == in_a || peekToken == inout_a ) {
 
-	// To-do: This 'while-loop' may need some fixing.
-	// Let's see about it...
-	// Also: Maybe I can do this recursively (Haskell-style)
-	// by calling formalParList itself
-	while ( peekToken == comma ) {
+		if ( peekToken == comma ){
 
-		formalParItem();
-		getNextToken();
+			getNextToken();
 
-		// Make sure that the next function does not call
-		// getNextToken in the first time (since that's already
-		// been done here)
+			if ( peekToken == in_a || peekToken == inout_a ) {
 
+				formalParItem();
+
+			} else {
+
+				error("Parameter needed after comma, in Parameters declaration.");
+			}
+
+		} else {
+
+			error("Comma needed between parameter declarations.");
+
+		}
 	}
 }
 
 void formalParItem() {
 
-	printf("Syntax Debug: Inside formalParItem.\n");
+	printf("Syntax Debug: Inside formalParItem.\n\n");
 
-	// We don't call getNextToken() here, because we have the next
-	// token ready from formalParList()
+	getNextToken();
 
 	if ( token == in_a ) {
 
@@ -374,7 +382,6 @@ void formalParItem() {
 			error("No variable declared in 'FormalParItem");
 		
 		}
-
 
 	} else if ( token == inout_a ) {
 
@@ -390,35 +397,60 @@ void formalParItem() {
 
 void sequence() {
 
-	printf("Syntax Debug: Inside sequence.\n");
+	printf("Syntax Debug: Inside sequence.\n\n");
 
 	statement();
 
-	getNextToken();
+	while ( peekToken == semicolon ) {
 
-	while ( token == semicolon ) {
+		getNextToken();
 
-			statement();
-			getNextToken();
+		statement();
 
 	}
-
 }
 
 void brack_or_stat() {
 
-	printf("Syntax Debug: Inside brack_or_stat.\n");
+	printf("Syntax Debug: Inside brack_or_stat.\n\n");
 
+	if ( peekToken == curlbrackleft ) {
+
+		brackets_seq();
+
+	} else {
+
+		statement();
+	}
+}
+
+void brackets_seq() {
+
+	getNextToken();
+
+	if ( token == curlbrackleft ) {
+
+		sequence();
+
+		getNextToken();
+
+		if ( token != curlbrackright ) {
+
+			error("Curly brackets must close after opening.");
+
+		}
+	}
 }
 
 void statement() {
 
-	printf("Syntax Debug: Inside statement.\n");
-
-	getNextToken();
+	printf("Syntax Debug: Inside statement.\n\n");
 
 	// Assignment-Stat:
-	if ( token == VARIABLE ) {
+	if ( peekToken == VARIABLE ) {
+
+		// Consume "VARIABLE":
+		getNextToken();
 
 		getNextToken();
 
@@ -426,16 +458,22 @@ void statement() {
 
 			expression();
 
+		} else {
+			error("Assignment symbol needed after Variable ID");
 		}
 
 	// If-Stat:
-	} else if ( token == if_a ) {
+	} else if ( peekToken == if_a ) {
+
+		// Consume "if_a":
+		getNextToken();
 
 		getNextToken();
 
 		if ( token == parenthleft ) {
 
 			condition();
+
 			getNextToken();
 
 			if ( token != parenthright ) {
@@ -449,13 +487,17 @@ void statement() {
 		elsepart();
 
 	// While-Stat:
-	} else if ( token == while_a ) {
+	} else if ( peekToken == while_a ) {
+
+		// Consume "while_a":
+		getNextToken();
 
 		getNextToken();
 
 		if ( token == parenthleft ) {
 
 			condition();
+
 			getNextToken();
 
 			if ( token != parenthright ) {
@@ -469,9 +511,13 @@ void statement() {
 		}
 
 	// Do-While-Stat:
-	} else if ( token == do_a ) {
+	} else if ( peekToken == do_a ) {
+
+		// Consume "do_a":
+		getNextToken();
 
 		brack_or_stat();
+
 		getNextToken();
 
 		if ( token == while_a ) {
@@ -481,9 +527,10 @@ void statement() {
 			if ( token == parenthleft ) {
 
 				condition();
+
 				getNextToken();
 
-				if ( token !=  parenthright ) {
+				if ( token != parenthright ) {
 
 					error("Closing parenthesis needed in 'do-while' statement.");
 
@@ -491,14 +538,16 @@ void statement() {
 
 			} else {
 
-				error("Opening parenthesis needed for 'do-while' condition.");
+				error("Opening parenthesis needed for 'do-while' condition, after 'while'.");
 
 			}
-
 		}
 
 	// For-Stat:
-	} else if ( token == for_a ) {
+	} else if ( peekToken == for_a ) {
+
+		// Consume "for_a":
+		getNextToken();
 
 		getNextToken();
 
@@ -509,31 +558,39 @@ void statement() {
 			if ( token == assign ) {
 
 				expression();
+
 				getNextToken();
 
 				if ( token == to_a ) {
 
 					expression();
-					getNextToken();
+					
+					if ( peekToken == step_a ) {
 
-					if ( token == step_a ) {
+						// Consume "step_a":
+						getNextToken();
+
 						expression();
+
 					}
 
 				} else {
-					error("'For loop' is not syntactically correct.");
+					error("'For loop' is not syntactically correct: 'to' needed.");
 				}
 
 			} else {
-				error("'For loop' is not syntactically correct.");
+				error("'For loop' is not syntactically correct: 'assign' symbol needed.");
 			}
 
 		} else {
-			error("Iterator variable needed in 'for-loop'");
+			error("Iterator variable (called 'id' in grammar) needed in 'for-loop'");
 		}
 
 	// Call-Stat:
-	} else if ( token == call_a ) {
+	} else if ( peekToken == call_a ) {
+
+		// Consume "VARIABLE":
+		getNextToken();
 
 		getNextToken();
 
@@ -544,13 +601,17 @@ void statement() {
 		}
 
 	// Return-Stat:
-	} else if ( token == return_a ) {
+	} else if ( peekToken == return_a ) {
+
+		// Consume "VARIABLE":
+		getNextToken();
 
 		getNextToken();
 
 		if ( token == parenthleft ) {
 
 			expression();
+
 			getNextToken();
 
 			if ( token != parenthright ) {
@@ -566,13 +627,17 @@ void statement() {
 		}
 
 	// Print-Stat:
-	} else if ( token == print_a ) {
+	} else if ( peekToken == print_a ) {
+
+		// Consume "VARIABLE":
+		getNextToken();
 
 		getNextToken();
 
 		if ( token == parenthleft ) {
 
 			expression();
+
 			getNextToken();
 
 			if ( token != parenthright ) {
@@ -592,42 +657,55 @@ void statement() {
 
 void actualpars() {
 
-	printf("Syntax Debug: Inside actualpars.\n");
+	printf("Syntax Debug: Inside actualpars.\n\n");
 
 	getNextToken();
 
 	if ( token == parenthleft ) {
 
-		actualparlist();
+		if ( peekToken == in_a || peekToken == inout_a ) {
+
+			actualparlist();
+
+		}
+
 		getNextToken();
 
 		if ( token != parenthright ) {
-
-			error("Closing parenthesis needed in 'actualpars");
-
+			error("Closing parenthesis needed in parameters definition ('actualpars').");
 		}
+
+	} else {
+
+		error("Parentheses needed for Parameters definition ('actualpars').");
+	
 	}
 }
 
 void actualparlist() {
 
-	printf("Syntax Debug: Inside actualparlist.\n");
-
-	actualparitem();
+	printf("Syntax Debug: Inside actualparlist.\n\n");
 
 	getNextToken();
 
-	while ( token == comma ) {
+	actualparitem();
 
-			actualparitem();
-			getNextToken();
+	while ( peekToken == comma || peekToken == in_a || peekToken == inout_a ) {
+
+		getNextToken();
+
+		if ( token == in_a || token == inout_a ) {
+			error("Parameters need to be seperated with a comma.");
+		}
+
+		actualparitem();
 
 	}
 }
 
 void actualparitem() {
 
-	printf("Syntax Debug: Inside actualparitem.\n");
+	printf("Syntax Debug: Inside actualparitem.\n\n");
 
 	getNextToken();
 
@@ -654,47 +732,43 @@ void actualparitem() {
 
 void condition() {
 
-	printf("Syntax Debug: Inside condition.\n");
+	printf("Syntax Debug: Inside condition.\n\n");
 
 	boolterm();
 
-	getNextToken();
+	while ( peekToken == or_a ) {
 
-	while ( token == or_a ) {
+		// Consume the "or_a" token:
+		getNextToken();
 
 		boolterm();
-		getNextToken();
 
 	}
 }
 
 void boolterm() {
 
-	printf("Syntax Debug: Inside boolterm.\n");
+	printf("Syntax Debug: Inside boolterm.\n\n");
 
 	boolFactor();
 
-	getNextToken();
+	while ( peekToken == and_a ) {
 
-	// To-do: These 'whiles' may have a problem with the fact
-	// that they get the next token before the next function
-	// demands the right one
-	while ( token == and_a ) {
+		//Consyme the "and_a" token:
+		getNextToken();
 
-			boolFactor();
-			getNextToken();
+		boolFactor();
 
 	}
 }
 
 void term() {
 
-	printf("Syntax Debug: Inside term.\n");
+	printf("Syntax Debug: Inside term.\n\n");
 
 	factor();
-	getNextToken();
 
-	while ( token == multipl || token == divide ){
+	while ( peekToken == multipl || peekToken == divide ){
 
 		mul_oper();
 		factor();
@@ -704,7 +778,7 @@ void term() {
 
 void factor() {
 
-	printf("Syntax Debug: Inside factor.\n");
+	printf("Syntax Debug: Inside factor.\n\n");
 
 	getNextToken();
 
@@ -715,12 +789,11 @@ void factor() {
 	} else if ( token == parenthleft ) {
 
 		expression();
+
 		getNextToken();
 
 		if ( token != parenthright ) {
-
 			error("Closing parenthesis needed for 'factor' expression.");
-
 		}
 
 	} else if ( token == VARIABLE ) {
@@ -728,26 +801,22 @@ void factor() {
 		idtail();
 
 	}
-
 }
 
 void idtail() {
 
-	printf("Syntax Debug: Inside idtail.\n");
+	printf("Syntax Debug: Inside idtail.\n\n");
 
-	getNextToken();
+	if ( peekToken == parenthleft ) {
 
-	// To-do: This will not work because we have already used
-	// the valid 'left parenthesis' token. Must find a solution:
-	if ( token == parenthleft ) {
 		actualpars();
-	}
 
+	}
 }
 
 void relational_oper() {
 
-	printf("Syntax Debug: Inside relational_oper.\n");
+	printf("Syntax Debug: Inside relational_oper.\n\n");
 
 	getNextToken();
 
@@ -759,7 +828,9 @@ void relational_oper() {
 
 void add_oper() {
 
-	printf("Syntax Debug: Inside add_oper.\n");
+	printf("Syntax Debug: Inside add_oper.\n\n");
+
+	getNextToken();
 
 	if ( token != plus && token != minus ) {
 		error("Addition or Subtraction operator needed.");
@@ -769,24 +840,26 @@ void add_oper() {
 
 void mul_oper() {
 
-	printf("Syntax Debug: Inside mul_oper.\n");
+	printf("Syntax Debug: Inside mul_oper.\n\n");
 
-	//getNextToken();
+	getNextToken();
 
 	if ( token != multipl && token != divide ) {
 
 		error("Multiplication or Division operator needed.");
 
 	}
-
 }
 
 void optionalSign() {
 
-	printf("Syntax Debug: Inside optionalSign.\n");
+	printf("Syntax Debug: Inside optionalSign.\n\n");
 
-	// To-do.
+	if ( peekToken == plus || peekToken == minus ) {
 
+		add_oper();
+
+	}
 }
 
 void getNextToken() {
