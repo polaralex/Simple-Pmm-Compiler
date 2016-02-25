@@ -21,8 +21,12 @@ typedef struct quartet_list {
 
 // Helper Subroutines:
 int nextquad();
-void genquad(char *operator, char *x, char *y, char *z);
+void genquad(char operator[30], char x[30], char y[30], char z[30]);
 char * newtemp();
+
+// List pointers:
+quartet_list *head;
+label_list *label_head;
 
 label_list * emptylist();
 label_list * makelist(int quad_label);
@@ -30,14 +34,39 @@ void merge(label_list * list1, label_list * list2);
 void backpatch(label_list list, int z);
 
 int nextquad() {
-
 	nextquad = nextquad + 10;
 	return(nextquad);
 }
 
-void genquad(char *operator, char *x, char *y, char *z) {
+void genquad(char operator[30], char x[30], char y[30], char z[30]) {
 
 	// Generate a Quad here, and add it in the Quad list.
+	quartet_list *current = head;
+
+	// Create the new node to be inserted in our list:
+	quartet_list *new_node = malloc(sizeof(node));
+
+	new_node->quartet.label = nextquad;
+	nextquad = nextquad + 10;
+
+	strcpy(new_node->quartet.operator, operator);
+	strcpy(new_node->quartet.argument1, argument1);
+	strcpy(new_node->quartet.argument2, argument2);
+	strcpy(new_node->quartet.result, result);
+
+	new_node->next = NULL;
+
+	// If the list is empty, make this new-node the head:
+	if ( head == NULL ) {
+		head = new_node;
+	} else {
+		while( current->next != NULL ) {
+			current = current->next;
+		}
+		// We reach this point, when we are at the last node:
+		current->next = new_node;
+		current->next->next = NULL;
+	}
 }
 
 // Creates and Returns a Temporary variable (in the format of "T_1", "T_2" etc.):
