@@ -20,3 +20,6 @@ static char encodedOutput[BIG_CHARACTER_ARRAY_LENGTH];
 
 // Global state of Lexicographical Analysis (checks if it's been already done once):
 static int analysis_done = 0;
+
+// Global variables for Intercode:
+static int nextquad = 100;
