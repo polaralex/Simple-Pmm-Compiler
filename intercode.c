@@ -38,7 +38,7 @@ int nextquad() {
 	return(nextquad);
 }
 
-void genquad(char operator[30], char x[30], char y[30], char z[30]) {
+void genquad (char operator[30], char x[30], char y[30], char z[30]) {
 
 	// Generate a Quad here, and add it in the Quad list.
 	quartet_list *current = head;

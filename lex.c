@@ -362,13 +362,164 @@ int stateAnalyzer (FILE *input, char *output, char *encodedOutput) {
 
 		} else if (state == STATE_NUMBER && isspace(character1)) { // The number has ended with whitespace, so we save it:
 			
+			char* ptr;
+
+			// Check for the integer size restriction (between -32767 and 32767):
+			if ( abs((int)strtol(currentWord, &ptr, 10)) < 32767 ) {
+
+				state = STATE_WHITESPACE;
+
+				sprintf(output + strlen(output), "%s ", currentWord);
+				sprintf(encodedOutput + strlen(encodedOutput), "%d ", INTEGER);
+
+				initializeCharArray(currentWord);
+
+				i=0;
+
+			} else {
+
+				error("[Lexicographical Analyzer] Integers must be between -32767 and 32767.");
+				state = STATE_ERROR;
+			}
+
+			} else if (state == STATE_NUMBER && ispunct(character1)) {
+
+			// NOTE: This part of code is DUPLICATED below.
+			// Maybe I will clean this up later and make it
+			// a discrete function.
+
 			state = STATE_WHITESPACE;
 
-			sprintf(output + strlen(output), "%s ", currentWord);
-			sprintf(encodedOutput + strlen(encodedOutput), "%d ", INTEGER);
+			// Here we add the variable identifier OR the sensitive identifier to our text buffers (encoded and original).
+			int isItSensitiveWord = isSensitiveWord(currentWord);
+
+			// Original:
+			strncat(output, currentWord, i);
+			strncat(output, " ", i);
+
+			// Encoded:
+			if( isItSensitiveWord == NOT_SENSITIVE ){
+				sprintf(encodedOutput + strlen(encodedOutput), "%d ", VARIABLE);
+			} else {
+				sprintf(encodedOutput + strlen(encodedOutput), "%d ", isItSensitiveWord);
+			}
 
 			initializeCharArray(currentWord);
 			i=0;
+
+			closureState = doesCharRequireClosure(character1);
+
+			printf("Does char require closure? Answer: %d\n\n", closureState);
+
+			// Discern between a common punctuation character and one that needs closure:
+			if( closureState == SIMPLE_CHARACTER ){
+
+				strncat(output, &character1, 1);
+				strncat(output, " ", 1);
+
+				tempPunctuationIdentifier = getPunctuationIdentifier(character1);
+
+				printf("The punctuation identifier is: %d\n\n", tempPunctuationIdentifier);
+
+				sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
+
+			} else if ( closureState == POSSIBLE_COMPLEX_CHAR ) {
+
+					if ( character1 == '<' && character2 != '=' && character2 != '>') {
+
+						strncat(output, "<", 1);
+						strncat(output, " ", 1);
+
+						tempPunctuationIdentifier = getPunctuationIdentifier('<');
+						sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
+
+					} else if( character1 == '<' && character2 == '=') {
+
+						getc(input); // Get the peeked character out of the way for the next loop
+						strncat(output, "<=", 2);
+						strncat(output, " ", 1);
+
+						tempPunctuationIdentifier = lessequals;
+						sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
+
+					} else if ( character1 == '<' && character2 == '>') {
+
+						getc(input); // Get the peeked character out of the way for the next loop
+						strncat(output, "<>", 2);
+						strncat(output, " ", 1);
+
+						tempPunctuationIdentifier = different;
+						sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
+
+					} else if ( character1 == '>' && character2 == '=') {
+
+						getc(input); // Get the peeked character out of the way for the next loop
+						strncat(output, ">=", 2);
+						strncat(output, " ", 1);
+
+						tempPunctuationIdentifier = moreequals;
+						sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
+
+					} else if ( character1 == '>' && character2 != '=') {
+
+						strncat(output, ">", 1);
+						strncat(output, " ", 1);
+
+						tempPunctuationIdentifier = getPunctuationIdentifier('>');
+						sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
+
+					}  else if ( character1 == '/' && character2 == '*') {
+
+						printf("We know that a comment section begins.\n\n");
+
+						// Here we know that comments open, so we go through the input to find
+						// their closing point, and ignore everything between the comment symbols:
+
+						character1 = getc(input);
+						character2 = peek(input);
+
+						printf("Character1: %c\n", character1);
+						printf("Character2: %c\n\n", character2);
+
+						while ( (character1 != '*') || (character2 != '/') ) {
+
+							character1 = getc(input);
+							character2 = peek(input);
+
+							printf("loop.\n");
+
+							if( character1 == EOF ){
+								// This means that the file ends before the comments close
+								state = STATE_ERROR;
+							}
+						}
+
+						getc(input);
+						 // Get the peeked character (in our case '/') out of the way
+
+					} else if ( character1 == '*' && character2 == '/'){
+
+						// This error happens if we find a comment-close character before we find a comment-open one:
+						state = STATE_ERROR;
+					}
+
+
+			} else if (closureState == REQUIRES_CLOSURE || closureState == IS_CLOSURE_CHARACTER) {
+
+				// To-Do: Maybe we will have to check for closure - but I don't know yet
+				
+				strncat(output, &character1, 1);
+				strncat(output, " ", 1);
+
+				tempPunctuationIdentifier = getPunctuationIdentifier(character1);
+				sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
+
+			} else if (closureState == STATE_ERROR){
+
+				state = STATE_ERROR;
+
+			}
+			// -- END OF CODE DUPLICATION --
 
 		// Here begin the composite punctuation identifications:
 		} else if (state == STATE_WHITESPACE && ispunct(character1)) {

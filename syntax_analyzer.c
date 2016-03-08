@@ -78,10 +78,7 @@ void block() {
 
 	if (token == curlbrackleft) {
 
-		while ( peekToken == VARIABLE ){
-			declarations();
-		}
-
+		declarations();
 		subprograms();
 		sequence();
 
@@ -97,17 +94,12 @@ void declarations() {
 
 	printf("Syntax Debug: Inside declarations.\n\n");
 
-	getNextToken();
+	if (peekToken == var_a) {
 
-	if ( token == var_a ) {
-
-		varlist();
-
+		// Consume 'var':
 		getNextToken();
 
-		if ( token != semicolon ){
-			error("Semicolon required at the end of variable declarations.");
-		}
+		varlist();
 	}
 }
 
@@ -142,6 +134,9 @@ void varlist() {
 				error("Comma needed between variable declarations.");
 			}
 		}
+	} else {
+
+		error("Variable declaration(s) needed after 'var' keyword.");
 	}
 }
 
