@@ -1,3 +1,5 @@
+#include "defines.h"
+
 // Quartet Structs:
 struct quad
 {
@@ -21,7 +23,7 @@ typedef struct quartet_list {
 
 // Helper Subroutines:
 int nextquad();
-void genquad(char operator[30], char x[30], char y[30], char z[30]);
+void genquad(char operator[30], char argument1[30], char argument2[30], char result[30]);
 char * newtemp();
 
 // List pointers:
@@ -31,23 +33,23 @@ label_list *label_head;
 label_list * emptylist();
 label_list * makelist(int quad_label);
 void merge(label_list * list1, label_list * list2);
-void backpatch(label_list list, int z);
+void backpatch(label_list list, int label_number);
 
 int nextquad() {
 	nextquad = nextquad + 10;
 	return(nextquad);
 }
 
-void genquad (char operator[30], char x[30], char y[30], char z[30]) {
+void genquad (char operator[30], char argument1[30], char argument2[30], char result[30]) {
 
-	// Generate a Quad here, and add it in the Quad list.
+	// Generate a Quad and add it in the Quad list:
 	quartet_list *current = head;
 
 	// Create the new node to be inserted in our list:
 	quartet_list *new_node = malloc(sizeof(node));
 
 	new_node->quartet.label = nextquad;
-	nextquad = nextquad + 10;
+	nextquad();
 
 	strcpy(new_node->quartet.operator, operator);
 	strcpy(new_node->quartet.argument1, argument1);
@@ -60,9 +62,11 @@ void genquad (char operator[30], char x[30], char y[30], char z[30]) {
 	if ( head == NULL ) {
 		head = new_node;
 	} else {
+
 		while( current->next != NULL ) {
 			current = current->next;
 		}
+
 		// We reach this point, when we are at the last node:
 		current->next = new_node;
 		current->next->next = NULL;
@@ -100,12 +104,12 @@ label_list * makelist(int quad_label) {
 // Merges two Lists of Quad-Labels and Returns the Sorted List Result:
 label_list * merge (label_list *list1, label_list * list2) {
 
-	// Posibility of one list being NULL:
-	if ( !list1 ) {
+	// Posibility of one of the lists being NULL:
+	if ( list1 == NULL ) {
 		return(list2);
 	}
 
-	if ( !list2 ) {
+	if ( list2 == NULL ) {
 		return(list1);
 	}
 
@@ -122,7 +126,6 @@ label_list * merge (label_list *list1, label_list * list2) {
 	label_list *tail = list1;
 
 	do {
-
 		// Sort the list while looping, by finding any smaller label
 		// than the first node of list2, and adding them to our merged list:
 		while ( tail->next && (tail->next->label <= list2->label )) {
@@ -139,15 +142,18 @@ label_list * merge (label_list *list1, label_list * list2) {
 	return (list1);
 }
 
-void backpatch(label_list list, int z) {
+void backpatch(label_list *list, int label_number) {
 
-	quartet_node *current = head; //THIS???
+	// Set current to the head of the quartets list:
+	quartet_node *current = head;
+
+	// Set label_list as the head of the list of labels:
 	label_list *temp = list;
 
 	while (current != NULL && temp != NULL) {
 
 		if ( temp->label == current->quartet.label ) {
-			sprintf (current->quartet.result, "%d", z);
+			sprintf (current->quartet.result, "%d", label_number);
 			temp = temp->next;
 		}
 

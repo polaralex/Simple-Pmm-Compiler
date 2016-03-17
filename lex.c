@@ -769,14 +769,6 @@ int getPunctuationIdentifier(char inputCharacter){
 		return (morethan);
 	} else if( inputCharacter == '=' ) {
 		return (equals);
-	/*} else if( strcmp(inputString, "<=") == 0){
-		return (lessequals);
-	} else if( strcmp(inputString, ">=") == 0){
-		return (moreequals);
-	} else if( strcmp(inputString, "<>") == 0){
-		return (different);
-	} else if( strcmp(inputString, ":=") == 0){*/
-		return (assign);
 	} else if( inputCharacter == ';' ) {
 		return (semicolon);
 	} else if( inputCharacter == ',' ) {
@@ -793,10 +785,6 @@ int getPunctuationIdentifier(char inputCharacter){
 		return (bracketleft);
 	} else if( inputCharacter == ']' ) {
 		return (bracketright);
-	/*} else if( strcmp(inputString, "/ *") == 0){
-		return (commentbegin);
-	} else if( strcmp(inputString, "* /") == 0){
-		return (commentend);*/
 	} else {
 		return(NOT_SENSITIVE);
 	}
