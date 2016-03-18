@@ -6,6 +6,7 @@
 #include "functions.h"
 #include "lex.c"
 #include "syntax_analyzer.c"
+#include "intercode_functions.c"
 
 int main(int argc, char *argv[]) {
 
