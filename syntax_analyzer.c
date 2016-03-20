@@ -223,7 +223,7 @@ void boolFactor(label_node **R_True, label_node **R2_False) {
 	// Case 2:
 	} else if ( peekToken == bracketleft ) {
 
-		// Consume 'left bracketToken'
+		// Consume 'left bracket Token'
 		getNextToken();
 
 		label_node *B_True;
@@ -256,7 +256,7 @@ void boolFactor(label_node **R_True, label_node **R2_False) {
 
 }
 
-void expression() {
+void expression(char *E_place) {
 
 	printf("Syntax Debug: Inside expression.\n\n");
 
@@ -285,7 +285,6 @@ void expression() {
 	// {P2}:
 	char *E_place = malloc(sizeof(30));
 	strcpy(*E_place, T1_Place);
-
 }
 
 void subprograms() {
@@ -536,11 +535,19 @@ void statement() {
 		// Consume "while_a":
 		getNextToken();
 
+		// {P1}:
+		int B_Quad = getpeekquad();
+
 		getNextToken();
 
 		if ( token == parenthleft ) {
 
-			condition();
+			label_node *B_True;
+			label_node *B_False;
+			condition(&b_true, &b_false);
+
+			// {P2}:
+			backpatch(B_True, getnextquad());
 
 			getNextToken();
 
@@ -552,6 +559,11 @@ void statement() {
 
 			brack_or_stat();
 
+			char While_Quad[30];
+			sprintf(While_Quad, "%d", B_Quad);
+
+			genquad("jump", "_", "_", While_Quad);
+			backpatch(B_False, getnextquad());
 		}
 
 	// Do-While-Stat:
@@ -559,6 +571,9 @@ void statement() {
 
 		// Consume "do_a":
 		getNextToken();
+
+		// {P1}:
+		int S_Quad = getpeekquad();
 
 		brack_or_stat();
 
@@ -570,7 +585,13 @@ void statement() {
 
 			if ( token == parenthleft ) {
 
-				condition();
+				label_node *B_True;
+				label_node *B_False;
+				condition(&B_True, &B_False);
+
+				// {P2}:
+				backpatch(B_True, S_Quad);
+				backpatch(B_False, getnextquad());
 
 				getNextToken();
 
@@ -592,6 +613,8 @@ void statement() {
 
 		// Consume "for_a":
 		getNextToken();
+
+		int For_Quad = getpeekquad();
 
 		getNextToken();
 
@@ -640,7 +663,12 @@ void statement() {
 
 		if ( token == VARIABLE ) {
 
+			char function_name[30];
+			// TODO: Make it take the name of the function.
+
 			actualpars();
+
+			genquad("call", function_name, "_", "_");
 
 		}
 
@@ -654,20 +682,20 @@ void statement() {
 
 		if ( token == parenthleft ) {
 
-			expression();
+			char *E_Place = malloc(sizeof(30));
+			expression(&E_Place);
 
 			getNextToken();
 
 			if ( token != parenthright ) {
-
 				error("Closing parenthesis needed in 'return' statement");
-
 			}
+
+			genquad("retv", *E_Place, "_", "_");
 
 		} else {
 
 			error("Parenthesis needed after 'return' statement.");
-
 		}
 
 	// Print-Stat:
@@ -680,7 +708,8 @@ void statement() {
 
 		if ( token == parenthleft ) {
 
-			expression();
+			char *E_Place = malloc(sizeof(30)); 
+			expression(&E_Place);
 
 			getNextToken();
 
@@ -689,6 +718,8 @@ void statement() {
 				error("Closing parenthesis needed in 'print' statement");
 
 			}
+
+			genquad("out", E_Place, "_", "_");
 
 		} else {
 
@@ -754,16 +785,21 @@ void actualparitem() {
 	if ( token == in_a ) {
 
 		expression();
+		// TODO: Εδώ πως θα λειτουργεί η παράμετρος σε σχέση με
+		// το expression;;;???
+		genquad("par", in_parameter, "CV", "_");
 
 	} else if ( token == inout_a ) {
 
 		getNextToken();
 
 		if ( token != VARIABLE ) {
-
 			error("Variable needed after 'inout' of 'call' statement.");
-
 		}
+
+		char inout_parameter[30];
+		// Todo: Take the parameter's name.
+		genquad("par", inout_parameter, "REF", "_");
 
 	} else {
 

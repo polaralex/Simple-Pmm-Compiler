@@ -43,6 +43,10 @@ int getnextquad() {
 	return(nextquad);
 }
 
+int getpeekquad() {
+	return (nextquad + 10);
+}
+
 void genquad (char operator[30], char argument1[30], char argument2[30], char result[30]) {
 
 	// Generate a Quad and add it in the Quad list:
