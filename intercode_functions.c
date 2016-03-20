@@ -1,5 +1,8 @@
 #include "defines.h"
 
+//FAILSAFE FOR FILE OUTPUT LENGTH:
+int failsafe = 0;
+
 // Struct for the general representation of Quads:
 typedef struct quad
 {
@@ -23,7 +26,7 @@ typedef struct quartet_list {
 } quartet_node;
 
 // Helper Subroutines:
-int getnextquad();
+int nextquad();
 void genquad(char operator[30], char argument1[30], char argument2[30], char result[30]);
 char * newtemp();
 
@@ -38,13 +41,8 @@ void backpatch(struct label_list * list, int label_number);
 
 int temp_number = 1;
 
-int getnextquad() {
-	nextquad = nextquad + 10;
-	return(nextquad);
-}
-
-int getpeekquad() {
-	return (nextquad + 10);
+int nextquad() {
+	return(nextquadlabel);
 }
 
 void genquad (char operator[30], char argument1[30], char argument2[30], char result[30]) {
@@ -55,8 +53,8 @@ void genquad (char operator[30], char argument1[30], char argument2[30], char re
 	// Create the new node to be inserted in our list:
 	quartet_node *new_node = malloc(sizeof(quartet_node));
 
-	new_node->quartet.label = nextquad;
-	getnextquad();
+	new_node->quartet.label = nextquadlabel;
+	nextquadlabel = nextquadlabel + 10;
 
 	strcpy(new_node->quartet.operator, operator);
 	strcpy(new_node->quartet.argument1, argument1);
@@ -167,4 +165,45 @@ void backpatch(struct label_list *list, int label_number) {
 
 		current = current->next;
 	}
+}
+
+void printQuadsToFile(quartet_node *quadsList) {
+
+	FILE *quadsOutputFile = fopen("quads_output.txt", "w");
+
+	if (quadsOutputFile == NULL) {
+    	printf("Error opening file!\n");
+    	exit(1);
+	}
+
+	while (quadsList->next != NULL && failsafe < 100) {
+
+		// Temporary holders for the output String values:
+		char label[30];
+		char op[30];
+		char arg1[30];
+		char arg2[30];
+		char result[30];
+
+		// Fill the holders using data from the quads struct:
+		sprintf(label, "%d", quadsList->quartet.label);
+		strcpy(op, quadsList->quartet.operator);
+		strcpy(arg1, quadsList->quartet.argument1);
+		strcpy(arg2, quadsList->quartet.argument2);
+		strcpy(result, quadsList->quartet.result);
+
+		// Write the holders' data to the text file:
+		fprintf(quadsOutputFile, "%s: ", label);
+		fprintf(quadsOutputFile, "%s , ", op);
+		fprintf(quadsOutputFile, "%s , ", arg1);
+		fprintf(quadsOutputFile, "%s , ", arg2);
+		fprintf(quadsOutputFile, "%s\n", result);
+
+		quadsList = quadsList->next;
+
+		// THIS IS A FAILSAFE MECHANISM TO PREVENT NEVERENDING LOOP OUTPUTS:
+		failsafe++;
+	}
+
+	fclose(quadsOutputFile);
 }

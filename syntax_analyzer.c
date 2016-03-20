@@ -3,33 +3,34 @@
 #include <string.h>
 #include <ctype.h>
 #include "defines.h"
+#include "intercode_functions.c"
 
 // P-- Grammar:
 void program();
 void block();
 void declarations();
-void expression();
+void expression(char *E_place);
 void brack_or_stat();
 void formalParItem();
 void statement();
 void actualpars();
 void actualparlist();
 void actualparitem();
-void boolterm();
-void boolFactor();
-void factor();
+void boolterm(label_node *Q_True, label_node *Q_False);
+void boolFactor(label_node *R_True, label_node *R_False);
+void factor(char *F_Place);
 void mul_oper();
 void if_stat();
-void idtail();
+void idtail(char *Id_Place);
 void elsepart();
 void varlist();
 void relational_oper();
 void optionalSign();
-void term();
+void term(char *T_Place);
 void add_oper();
 void subprograms();
 void sequence();
-void condition();
+void condition(label_node *B_True, label_node *B_False);
 void funcBody();
 void func();
 void formalPars();
@@ -55,18 +56,22 @@ void program() {
 
 		if ( token == VARIABLE ) {
 
+			char program_name[30] = "temp_name";
+			genquad("begin_block", program_name, "_", "_");
+
 			block();
+
+			genquad("halt", "_", "_", "_");
+			genquad("end_block", program_name, "_", "_");
 
 		} else {
 
 			error("Program name expected.");
-
 		}
 
 	} else {
 
 		error("The keyword 'program' was expected.");
-
 	}
 }
 
@@ -152,14 +157,15 @@ void if_stat() {
 
 		if ( token == parenthleft ){
 
-			condition();
+			// TODO: Check this 
+			label_node *B_True;
+			label_node *B_False;
+			condition(B_True, B_False);
 
 			getNextToken();
 
 			if ( token != parenthright ){
-
 				error("'If statement' parenthesis not closed.");
-
 			}
 		}
 
@@ -183,7 +189,7 @@ void elsepart(){
 
 }
 
-void boolFactor(label_node **R_True, label_node **R2_False) {
+void boolFactor(label_node *R_True, label_node *R_False) {
 
 	printf("Syntax Debug: Inside boolFactor.\n\n");
 
@@ -202,13 +208,13 @@ void boolFactor(label_node **R_True, label_node **R2_False) {
 			label_node *B_True;
 			label_node *B_False;
 
-			condition(&B_True, &B_False);
+			condition(B_True, B_False);
 
 			//TODO: Look at this again!
 
 			// {P1}:
-			*R_True = B_False;
-			*R_False = B_True;
+			R_True = B_False;
+			R_False = B_True;
 
 			getNextToken();
 
@@ -229,11 +235,11 @@ void boolFactor(label_node **R_True, label_node **R2_False) {
 		label_node *B_True;
 		label_node *B_False;
 
-		condition(&B_True, &B_False);
+		condition(B_True, B_False);
 
 		// {P1}:
-		*R_True = B_True;
-		*R_False = B_False;
+		R_True = B_True;
+		R_False = B_False;
 
 		getNextToken();
 
@@ -248,9 +254,11 @@ void boolFactor(label_node **R_True, label_node **R2_False) {
 
 		// TODO: This after I make the expression() work
 
-		expression();
+		char *E_Place;
+
+		expression(E_Place);
 		relational_oper();
-		expression();
+		expression(E_Place);
 
 	}
 
@@ -263,17 +271,17 @@ void expression(char *E_place) {
 	optionalSign();
 
 	char *T1_Place;
-	T1_Place = malloc(sizeof(30));
-	term(&T1_Place);
+	T1_Place = malloc(sizeof(char)*30);
+	term(T1_Place);
 
 	while (peekToken == plus || peekToken == minus) {
 
 		add_oper();
 
 		char *T2_Place;
-		T2_Place = malloc(sizeof(30));
+		T2_Place = malloc(sizeof(char)*30);
 
-		term(&T2_Place);
+		term(T2_Place);
 
 		// {P1}:
 		char *w = newtemp();
@@ -283,8 +291,8 @@ void expression(char *E_place) {
 	}
 
 	// {P2}:
-	char *E_place = malloc(sizeof(30));
-	strcpy(*E_place, T1_Place);
+	E_place = malloc(sizeof(30));
+	strcpy(E_place, T1_Place);
 }
 
 void subprograms() {
@@ -485,7 +493,10 @@ void statement() {
 
 		if ( token == assign ) {
 
-			expression();
+			// TODO: This E_Place belongs here?
+			char *E_Place;
+
+			expression(E_Place);
 
 		} else {
 			error("Assignment symbol needed after Variable ID");
@@ -499,15 +510,15 @@ void statement() {
 
 		getNextToken();
 
+		label_node *ifTrue;
+		label_node *ifFalse;
+
 		if ( token == parenthleft ) {
 
-			label_node *ifTrue;
-			label_node *ifFalse;
-
-			condition(&ifTrue, &ifFalse);
+			condition(ifTrue, ifFalse);
 
 			// {P1}
-			backpatch(ifTrue, getnextquad());
+			backpatch(ifTrue, nextquad());
 
 			getNextToken();
 
@@ -520,14 +531,14 @@ void statement() {
 		brack_or_stat();
 
 		// {P2}
-		label_node *ifList = makelist(getnextquad());
+		label_node *ifList = makelist(nextquad());
 		genquad("jump","_","_","_");
-		backpatch(ifFalse, nextquad);
+		backpatch(ifFalse, nextquad());
 
 		elsepart();
 
 		// {P3}
-		backpatch(ifList, getnextquad());
+		backpatch(ifList, nextquad());
 
 	// While-Stat:
 	} else if ( peekToken == while_a ) {
@@ -536,25 +547,24 @@ void statement() {
 		getNextToken();
 
 		// {P1}:
-		int B_Quad = getpeekquad();
+		int B_Quad = nextquad();
 
 		getNextToken();
 
+		label_node *B_True;
+		label_node *B_False;
+
 		if ( token == parenthleft ) {
 
-			label_node *B_True;
-			label_node *B_False;
-			condition(&b_true, &b_false);
+			condition(B_True, B_False);
 
 			// {P2}:
-			backpatch(B_True, getnextquad());
+			backpatch(B_True, nextquad());
 
 			getNextToken();
 
 			if ( token != parenthright ) {
-
 				error("Closing parenthesis needed in 'while' condition.");
-
 			}
 
 			brack_or_stat();
@@ -563,7 +573,7 @@ void statement() {
 			sprintf(While_Quad, "%d", B_Quad);
 
 			genquad("jump", "_", "_", While_Quad);
-			backpatch(B_False, getnextquad());
+			backpatch(B_False, nextquad());
 		}
 
 	// Do-While-Stat:
@@ -573,7 +583,7 @@ void statement() {
 		getNextToken();
 
 		// {P1}:
-		int S_Quad = getpeekquad();
+		int S_Quad = nextquad();
 
 		brack_or_stat();
 
@@ -583,15 +593,16 @@ void statement() {
 
 			getNextToken();
 
+			label_node *B_True;
+			label_node *B_False;
+
 			if ( token == parenthleft ) {
 
-				label_node *B_True;
-				label_node *B_False;
-				condition(&B_True, &B_False);
+				condition(B_True, B_False);
 
 				// {P2}:
 				backpatch(B_True, S_Quad);
-				backpatch(B_False, getnextquad());
+				backpatch(B_False, nextquad());
 
 				getNextToken();
 
@@ -614,7 +625,7 @@ void statement() {
 		// Consume "for_a":
 		getNextToken();
 
-		int For_Quad = getpeekquad();
+		int For_Quad = nextquad();
 
 		getNextToken();
 
@@ -624,20 +635,25 @@ void statement() {
 
 			if ( token == assign ) {
 
-				expression();
+				char *E_Place;
+
+				// Note: The following E_Place is defined
+				// inside this block.
+
+				expression(E_Place);
 
 				getNextToken();
 
 				if ( token == to_a ) {
 
-					expression();
+					expression(E_Place);
 					
 					if ( peekToken == step_a ) {
 
 						// Consume "step_a":
 						getNextToken();
 
-						expression();
+						expression(E_Place);
 
 					}
 
@@ -683,7 +699,7 @@ void statement() {
 		if ( token == parenthleft ) {
 
 			char *E_Place = malloc(sizeof(30));
-			expression(&E_Place);
+			expression(E_Place);
 
 			getNextToken();
 
@@ -691,10 +707,9 @@ void statement() {
 				error("Closing parenthesis needed in 'return' statement");
 			}
 
-			genquad("retv", *E_Place, "_", "_");
+			genquad("retv", E_Place, "_", "_");
 
 		} else {
-
 			error("Parenthesis needed after 'return' statement.");
 		}
 
@@ -709,22 +724,18 @@ void statement() {
 		if ( token == parenthleft ) {
 
 			char *E_Place = malloc(sizeof(30)); 
-			expression(&E_Place);
+			expression(E_Place);
 
 			getNextToken();
 
 			if ( token != parenthright ) {
-
 				error("Closing parenthesis needed in 'print' statement");
-
 			}
 
 			genquad("out", E_Place, "_", "_");
 
 		} else {
-
 			error("Parenthesis needed after 'print' statement.");
-
 		}
 	}
 }
@@ -784,10 +795,13 @@ void actualparitem() {
 
 	if ( token == in_a ) {
 
-		expression();
+		char *E_Place;
+
+		expression(E_Place);
 		// TODO: Εδώ πως θα λειτουργεί η παράμετρος σε σχέση με
 		// το expression;;;???
-		genquad("par", in_parameter, "CV", "_");
+		// (+) Είναι το E_Place σωστό στη συνέχεια???
+		genquad("par", E_Place, "CV", "_");
 
 	} else if ( token == inout_a ) {
 
@@ -802,9 +816,7 @@ void actualparitem() {
 		genquad("par", inout_parameter, "REF", "_");
 
 	} else {
-
 		error("Missing 'in' or 'inout' expression after 'call' statement.");
-
 	}
 }
 
@@ -817,15 +829,15 @@ void condition(label_node *B_True, label_node *B_False) {
 	label_node *Q1_True;
 	label_node *Q1_False;
 
-	boolterm(&Q1_True, &Q2_False);
+	boolterm(Q1_True, Q1_False);
 
-	*B_True = Q1_True;
-	*B_False = Q1_False;
+	B_True = Q1_True;
+	B_False = Q1_False;
 
 	while ( peekToken == or_a ) {
 
 		// {P2}:
-		backpatch(*ConditionFalse, getnextquad());
+		backpatch(B_False, nextquad());
 
 		// Consume the "or_a" token:
 		getNextToken();
@@ -833,27 +845,27 @@ void condition(label_node *B_True, label_node *B_False) {
 		label_node *Q2_True;
 		label_node *Q2_False;
 
-		boolterm(&Q2_True, &Q2_False);
+		boolterm(Q2_True, Q2_False);
 
 		// {P3}:
-		*B_True = merge(*B_True, Q2_True);
-		*B_False = Q2_False;
+		B_True = merge(B_True, Q2_True);
+		B_False = Q2_False;
 
 	}
 }
 
-void boolterm(label_node **Q_True, label_node **Q_False) {
+void boolterm(label_node *Q_True, label_node *Q_False) {
 
 	printf("Syntax Debug: Inside boolterm.\n\n");
 
 	label_node *R1_True;
-	label_node *R2_False;
+	label_node *R1_False;
 
-	boolFactor(&R1_True, &R2_False);
+	boolFactor(R1_True, R1_False);
 
 	// {P1}:
-	*Q_True = R1_True;
-	*Q_False = R1_False;
+	Q_True = R1_True;
+	Q_False = R1_False;
 
 	while ( peekToken == and_a ) {
 
@@ -861,37 +873,37 @@ void boolterm(label_node **Q_True, label_node **Q_False) {
 		getNextToken();
 
 		// {P2}:
-		backpatch(*Q_True, getnextquad());
+		backpatch(Q_True, nextquad());
 
 		label_node *R2_True;
 		label_node *R2_False;
 
-		boolFactor(&R2_True, &R2_False);
+		boolFactor(R2_True, R2_False);
 
 		// {P3}:
-		*Q_False = merge(*Q_False, R2_False);
-		*Q_True = R2_True;
+		Q_False = merge(Q_False, R2_False);
+		Q_True = R2_True;
 
 	}
 }
 
-void term(char **T_Place) {
+void term(char *T_Place) {
 
 	printf("Syntax Debug: Inside term.\n\n");
 
 	char *F1_Place;
-	F1_Place = malloc(sizeof(30));
+	F1_Place = malloc(sizeof(char)*30);
 
-	factor(&F1_Place);
+	factor(F1_Place);
 
 	while ( peekToken == multipl || peekToken == divide ){
 
 		mul_oper();
 
 		char *F2_Place;
-		F2_Place = malloc(sizeof(30));
+		F2_Place = malloc(sizeof(char)*30);
 
-		factor(&F2_Place);
+		factor(F2_Place);
 
 		// {P1}:
 		char *w = newtemp();
@@ -900,11 +912,11 @@ void term(char **T_Place) {
 	}
 
 	// {P2}:
-	*T_Place = malloc(sizeof(30));
-	strcpy(*T_Place, F1_Place);
+	T_Place = malloc(sizeof(char)*30);
+	strcpy(T_Place, F1_Place);
 }
 
-void factor(char **F_Place) {
+void factor(char *F_Place) {
 
 	printf("Syntax Debug: Inside factor.\n\n");
 
@@ -916,7 +928,9 @@ void factor(char **F_Place) {
 
 	} else if ( token == parenthleft ) {
 
-		expression();
+		// TODO: Check this E_Place:
+		char *E_Place;
+		expression(E_Place);
 
 		getNextToken();
 
@@ -927,10 +941,9 @@ void factor(char **F_Place) {
 	} else if ( token == VARIABLE ) {
 
 		char *Id_Place;
-		Id_Place = malloc(sizeof(30));
+		Id_Place = malloc(sizeof(char)*30);
 
 		idtail(Id_Place);
-
 	}
 }
 

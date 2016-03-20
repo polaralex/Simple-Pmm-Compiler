@@ -22,4 +22,4 @@ static char encodedOutput[BIG_CHARACTER_ARRAY_LENGTH];
 static int analysis_done = 0;
 
 // Global variables for Intercode:
-static int nextquad = 100;
+static int nextquadlabel = 100;

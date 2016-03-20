@@ -6,7 +6,6 @@
 #include "functions.h"
 #include "lex.c"
 #include "syntax_analyzer.c"
-#include "intercode_functions.c"
 
 int main(int argc, char *argv[]) {
 
@@ -37,5 +36,8 @@ int main(int argc, char *argv[]) {
 
 	// Then, continue to the Syntax Analyzer:
 	program();
+
+	// Finally, create (and populate) the Text file containing the Quads List:
+	printQuadsToFile(head);
 
 }
