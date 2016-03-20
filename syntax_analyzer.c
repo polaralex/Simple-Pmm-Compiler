@@ -183,7 +183,7 @@ void elsepart(){
 
 }
 
-void boolFactor() {
+void boolFactor(label_node **R_True, label_node **R2_False) {
 
 	printf("Syntax Debug: Inside boolFactor.\n\n");
 
@@ -199,7 +199,16 @@ void boolFactor() {
 
 		if (token == bracketleft) {
 
-			condition();
+			label_node *B_True;
+			label_node *B_False;
+
+			condition(&B_True, &B_False);
+
+			//TODO: Look at this again!
+
+			// {P1}:
+			*R_True = B_False;
+			*R_False = B_True;
 
 			getNextToken();
 
@@ -217,7 +226,14 @@ void boolFactor() {
 		// Consume 'left bracketToken'
 		getNextToken();
 
-		condition();
+		label_node *B_True;
+		label_node *B_False;
+
+		condition(&B_True, &B_False);
+
+		// {P1}:
+		*R_True = B_True;
+		*R_False = B_False;
 
 		getNextToken();
 
@@ -229,6 +245,8 @@ void boolFactor() {
 
 	// Case 3:
 	} else {
+
+		// TODO: This after I make the expression() work
 
 		expression();
 		relational_oper();
@@ -243,14 +261,31 @@ void expression() {
 	printf("Syntax Debug: Inside expression.\n\n");
 
 	optionalSign();
-	term();
+
+	char *T1_Place;
+	T1_Place = malloc(sizeof(30));
+	term(&T1_Place);
 
 	while (peekToken == plus || peekToken == minus) {
 
 		add_oper();
-		term();
+
+		char *T2_Place;
+		T2_Place = malloc(sizeof(30));
+
+		term(&T2_Place);
+
+		// {P1}:
+		char *w = newtemp();
+		genquad("+", T1_Place, T2_Place, w);
+		T1_Place = w;
 
 	}
+
+	// {P2}:
+	char *E_place = malloc(sizeof(30));
+	strcpy(*E_place, T1_Place);
+
 }
 
 void subprograms() {
@@ -467,19 +502,33 @@ void statement() {
 
 		if ( token == parenthleft ) {
 
-			condition();
+			label_node *ifTrue;
+			label_node *ifFalse;
+
+			condition(&ifTrue, &ifFalse);
+
+			// {P1}
+			backpatch(ifTrue, getnextquad());
 
 			getNextToken();
 
 			if ( token != parenthright ) {
 
 				error("Closing parenthesis needed in 'if' statement condition.");
-			
 			}
 		}
 
 		brack_or_stat();
+
+		// {P2}
+		label_node *ifList = makelist(getnextquad());
+		genquad("jump","_","_","_");
+		backpatch(ifFalse, nextquad);
+
 		elsepart();
+
+		// {P3}
+		backpatch(ifList, getnextquad());
 
 	// While-Stat:
 	} else if ( peekToken == while_a ) {
@@ -723,53 +772,103 @@ void actualparitem() {
 	}
 }
 
-void condition() {
+// TODO : Condition needs double-pointer (???) parameters
+void condition(label_node *B_True, label_node *B_False) {
 
 	printf("Syntax Debug: Inside condition.\n\n");
 
-	boolterm();
+	// {P1}:
+	label_node *Q1_True;
+	label_node *Q1_False;
+
+	boolterm(&Q1_True, &Q2_False);
+
+	*B_True = Q1_True;
+	*B_False = Q1_False;
 
 	while ( peekToken == or_a ) {
+
+		// {P2}:
+		backpatch(*ConditionFalse, getnextquad());
 
 		// Consume the "or_a" token:
 		getNextToken();
 
-		boolterm();
+		label_node *Q2_True;
+		label_node *Q2_False;
+
+		boolterm(&Q2_True, &Q2_False);
+
+		// {P3}:
+		*B_True = merge(*B_True, Q2_True);
+		*B_False = Q2_False;
 
 	}
 }
 
-void boolterm() {
+void boolterm(label_node **Q_True, label_node **Q_False) {
 
 	printf("Syntax Debug: Inside boolterm.\n\n");
 
-	boolFactor();
+	label_node *R1_True;
+	label_node *R2_False;
+
+	boolFactor(&R1_True, &R2_False);
+
+	// {P1}:
+	*Q_True = R1_True;
+	*Q_False = R1_False;
 
 	while ( peekToken == and_a ) {
 
-		//Consyme the "and_a" token:
+		//Consume the "and_a" token:
 		getNextToken();
 
-		boolFactor();
+		// {P2}:
+		backpatch(*Q_True, getnextquad());
+
+		label_node *R2_True;
+		label_node *R2_False;
+
+		boolFactor(&R2_True, &R2_False);
+
+		// {P3}:
+		*Q_False = merge(*Q_False, R2_False);
+		*Q_True = R2_True;
 
 	}
 }
 
-void term() {
+void term(char **T_Place) {
 
 	printf("Syntax Debug: Inside term.\n\n");
 
-	factor();
+	char *F1_Place;
+	F1_Place = malloc(sizeof(30));
+
+	factor(&F1_Place);
 
 	while ( peekToken == multipl || peekToken == divide ){
 
 		mul_oper();
-		factor();
 
+		char *F2_Place;
+		F2_Place = malloc(sizeof(30));
+
+		factor(&F2_Place);
+
+		// {P1}:
+		char *w = newtemp();
+		genquad("x", F1_Place, F2_Place, w);
+		F1_Place = w;
 	}
+
+	// {P2}:
+	*T_Place = malloc(sizeof(30));
+	strcpy(*T_Place, F1_Place);
 }
 
-void factor() {
+void factor(char **F_Place) {
 
 	printf("Syntax Debug: Inside factor.\n\n");
 
@@ -791,18 +890,26 @@ void factor() {
 
 	} else if ( token == VARIABLE ) {
 
-		idtail();
+		char *Id_Place;
+		Id_Place = malloc(sizeof(30));
+
+		idtail(Id_Place);
 
 	}
 }
 
-void idtail() {
+void idtail(char *Id_Place) {
 
 	printf("Syntax Debug: Inside idtail.\n\n");
 
 	if ( peekToken == parenthleft ) {
 
 		actualpars();
+
+		char *w = newtemp();
+		genquad("par", w, "RET", "_");
+		genquad("call", Id_Place, "_", "_");
+		// TODO: How to return this??? And go upstairs...
 
 	}
 }
