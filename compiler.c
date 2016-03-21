@@ -9,7 +9,7 @@
 
 int main(int argc, char *argv[]) {
 
-	lexOutput[0] = '\0';
+	output[0] = '\0';
 	encodedOutput[0] = '\0';
 
 	printf("\f");
@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	// Open the file stream into the file pointer:
-	fp = fopen(argv[1], "r");
+	input = fopen(argv[1], "r");
 
 	printf("--------------------------------------\n");
 	printf("Status: Input File Opened for Parsing.\n");
@@ -38,6 +38,6 @@ int main(int argc, char *argv[]) {
 	program();
 
 	// Finally, create (and populate) the Text file containing the Quads List:
-	printQuadsToFile(head);
+	printQuadsToFile(quad_list_head);
 
 }

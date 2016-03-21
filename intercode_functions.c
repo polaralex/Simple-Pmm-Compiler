@@ -4,8 +4,7 @@
 int failsafe = 0;
 
 // Struct for the general representation of Quads:
-typedef struct quad
-{
+typedef struct quad {
 	int label;
 	char operator[30];
 	char argument1[30];
@@ -31,7 +30,7 @@ void genquad(char operator[30], char argument1[30], char argument2[30], char res
 char * newtemp();
 
 // List pointers:
-quartet_node *head;
+quartet_node *quad_list_head;
 label_node *label_head;
 
 label_node * emptylist();
@@ -48,7 +47,7 @@ int nextquad() {
 void genquad (char operator[30], char argument1[30], char argument2[30], char result[30]) {
 
 	// Generate a Quad and add it in the Quad list:
-	quartet_node *current = head;
+	quartet_node *current = quad_list_head;
 
 	// Create the new node to be inserted in our list:
 	quartet_node *new_node = malloc(sizeof(quartet_node));
@@ -64,8 +63,8 @@ void genquad (char operator[30], char argument1[30], char argument2[30], char re
 	new_node->next = NULL;
 
 	// If the list is empty, make this new-node the head:
-	if ( head == NULL ) {
-		head = new_node;
+	if ( quad_list_head == NULL ) {
+		quad_list_head = new_node;
 	} else {
 
 		while( current->next != NULL ) {
@@ -151,7 +150,7 @@ label_node * merge (struct label_list *list1, struct label_list
 void backpatch(struct label_list *list, int label_number) {
 
 	// Set current to the head of the quartets list:
-	quartet_node *current = head;
+	quartet_node *current = quad_list_head;
 
 	// Set label_list as the head of the list of labels:
 	label_node *temp = list;

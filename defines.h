@@ -69,7 +69,7 @@
 #define INTEGER 42
 #define eof_a 43
 
-#define BIG_CHARACTER_ARRAY_LENGTH 256
+#define BIG_CHARACTER_ARRAY_LENGTH 1024
 #define DEFAULT_WORD_ARRAY_SIZE 32
 
 // Error:

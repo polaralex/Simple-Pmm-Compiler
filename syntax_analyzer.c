@@ -84,7 +84,11 @@ void block() {
 	if (token == curlbrackleft) {
 
 		declarations();
-		subprograms();
+
+		while ( peekToken == procedure_a || peekToken == function_a ) {
+			subprograms();
+		}
+
 		sequence();
 
 		getNextToken();
@@ -105,6 +109,14 @@ void declarations() {
 		getNextToken();
 
 		varlist();
+
+		getNextToken();
+
+		if (token != semicolon) {
+			error("Semicolon needed at the end of variable declarations.");
+		}
+
+		printf("Syntax Debug: Variable Declarations ended with no problems.\n\n");
 	}
 }
 
@@ -495,7 +507,6 @@ void statement() {
 
 			// TODO: This E_Place belongs here?
 			char *E_Place;
-
 			expression(E_Place);
 
 		} else {

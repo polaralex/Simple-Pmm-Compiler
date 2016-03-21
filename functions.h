@@ -10,12 +10,12 @@ int error(char *string){
 }
 
 // Global file pointer and Token variable:
-static FILE *fp;
+static FILE *input;
 static int token;
 static int peekToken;
 
 // Global parsing output character arrays:
-static char lexOutput[BIG_CHARACTER_ARRAY_LENGTH];
+static char output[BIG_CHARACTER_ARRAY_LENGTH];
 static char encodedOutput[BIG_CHARACTER_ARRAY_LENGTH];
 
 // Global state of Lexicographical Analysis (checks if it's been already done once):
