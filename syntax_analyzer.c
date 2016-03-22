@@ -4,10 +4,11 @@
 #include <ctype.h>
 #include "defines.h"
 #include "intercode_functions.c"
+#include <stdbool.h>
 
 // P-- Grammar:
 void program();
-void block();
+void block(char function_name[30], bool isItMainBlock);
 void declarations();
 void expression(char *E_place);
 void brack_or_stat();
@@ -31,7 +32,7 @@ void add_oper();
 void subprograms();
 void sequence();
 void condition(label_node *B_True, label_node *B_False);
-void funcBody();
+void funcBody(char procedure_name[30], bool isItMainBlock);
 void func();
 void formalPars();
 void formalParList();
@@ -52,36 +53,32 @@ void program() {
 
 	if( token == program_a ){
 
+		char function_name[30] = "temp_program_name";
+
 		getNextToken();
 
 		if ( token == VARIABLE ) {
 
-			char program_name[30] = "temp_name";
-			genquad("begin_block", program_name, "_", "_");
-
-			block();
-
-			genquad("halt", "_", "_", "_");
-			genquad("end_block", program_name, "_", "_");
+			block(function_name, IT_IS_MAIN_BLOCK);
 
 		} else {
-
 			error("Program name expected.");
 		}
 
 	} else {
-
 		error("The keyword 'program' was expected.");
 	}
 }
 
-void block() {
+void block(char function_name[30], bool isItMainBlock) {
 
 	printf("Syntax Debug: Inside Block.\n\n");
 
 	getNextToken();
 
 	if (token == curlbrackleft) {
+
+		genquad("begin_block", function_name, "_", "_");
 
 		declarations();
 
@@ -91,10 +88,16 @@ void block() {
 
 		sequence();
 
+		if ( isItMainBlock == true ) {
+			genquad("halt", "_", "_", "_");
+		}
+
+		genquad("end_block", function_name, "_", "_");
+
 		getNextToken();
 
 		if( token != curlbrackright ) {
-			error("The keyword 'begin' was expected.");
+			error("A Closing Curly Bracket was expected at the end of program/function block.");
 		}
 	}
 }
@@ -329,8 +332,10 @@ void func() {
 
 		if (token == VARIABLE) {
 
-			funcBody();
+			char procedure_name[30];
+			strcpy(procedure_name, "temp_procedure_name");
 
+			funcBody(procedure_name, IT_IS_NOT_MAIN_BLOCK);
 		}
 
 	} else if (token == function_a) {
@@ -339,22 +344,23 @@ void func() {
 
 		if (token == VARIABLE) {
 
-			funcBody();
+			char function_name[30];
+			strcpy(function_name, "temp_function_name");
 
+			funcBody(function_name, IT_IS_NOT_MAIN_BLOCK);
 		}
 
 	} else {
-
 		error("Function declaration (procedure or function) needed.");
 	}
 }
 
-void funcBody() {
+void funcBody(char procedure_name[30], bool isItMainBlock) {
 
 	printf("Syntax Debug: Inside funcBody.\n\n");
 
 	formalPars();
-	block();
+	block(procedure_name, isItMainBlock);
 
 }
 
@@ -491,12 +497,17 @@ void brackets_seq() {
 	}
 }
 
-void statement() {
+void statement(char *E_Place) {
+	// TODO: Check the validity of *E_Place here, as a parameter.
 
 	printf("Syntax Debug: Inside statement.\n\n");
 
 	// Assignment-Stat:
 	if ( peekToken == VARIABLE ) {
+
+		// TODO: Here, I should get Variable's name.
+		// Is this correct?
+		char *assignment_target = newtemp();
 
 		// Consume "VARIABLE":
 		getNextToken();
@@ -505,9 +516,8 @@ void statement() {
 
 		if ( token == assign ) {
 
-			// TODO: This E_Place belongs here?
-			char *E_Place;
 			expression(E_Place);
+			genquad(":=", E_Place, "_", assignment_target);
 
 		} else {
 			error("Assignment symbol needed after Variable ID");
@@ -646,10 +656,8 @@ void statement() {
 
 			if ( token == assign ) {
 
-				char *E_Place;
-
 				// Note: The following E_Place is defined
-				// inside this block.
+				// as a parameter in the parent function.
 
 				expression(E_Place);
 
@@ -691,6 +699,7 @@ void statement() {
 		if ( token == VARIABLE ) {
 
 			char function_name[30];
+			strcpy(function_name, "temp_function_name");
 			// TODO: Make it take the name of the function.
 
 			actualpars();
@@ -709,7 +718,6 @@ void statement() {
 
 		if ( token == parenthleft ) {
 
-			char *E_Place = malloc(sizeof(30));
 			expression(E_Place);
 
 			getNextToken();
@@ -734,7 +742,6 @@ void statement() {
 
 		if ( token == parenthleft ) {
 
-			char *E_Place = malloc(sizeof(30)); 
 			expression(E_Place);
 
 			getNextToken();
@@ -806,7 +813,7 @@ void actualparitem() {
 
 	if ( token == in_a ) {
 
-		char *E_Place;
+		char *E_Place = malloc(sizeof(30));
 
 		expression(E_Place);
 		// TODO: Εδώ πως θα λειτουργεί η παράμετρος σε σχέση με
@@ -823,6 +830,7 @@ void actualparitem() {
 		}
 
 		char inout_parameter[30];
+		strcpy(inout_parameter, "temp_inout_id");
 		// Todo: Take the parameter's name.
 		genquad("par", inout_parameter, "REF", "_");
 
