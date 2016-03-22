@@ -70,7 +70,7 @@
 #define eof_a 43
 
 #define BIG_CHARACTER_ARRAY_LENGTH 1024
-#define DEFAULT_WORD_ARRAY_SIZE 32
+#define DEFAULT_WORD_ARRAY_SIZE 128
 
 // Error:
 #define VARIABLE_ERROR -1

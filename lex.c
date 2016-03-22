@@ -15,7 +15,6 @@ void checkNumberAndAddToOutput();
 void checkCharacterForComplexAndAddIt();
 
 // Variables (global for helping with code-cleanup):
-
 int nextToken;
 size_t defaultSize = 50;
 char stringContainer[BIG_CHARACTER_ARRAY_LENGTH];
@@ -164,6 +163,8 @@ int stateAnalyzer (FILE *input, char *output, char *encodedOutput) {
 			
 			state = STATE_VARIABLE;
 
+			printf("Inside building currentWord: '%s'\n", currentWord);
+
 			if(i<30) {
 				currentWord[i] = character1;
 			};
@@ -195,9 +196,7 @@ int stateAnalyzer (FILE *input, char *output, char *encodedOutput) {
 
 		} else if (state == STATE_VARIABLE && ispunct(character1)) {
 
-			// NOTE: This part of code is DUPLICATED below.
-			// Maybe I will clean this up later and make it
-			// a discrete function.
+			printf("Inside currentWord: '%s'\n", currentWord);
 
 			state = STATE_WHITESPACE;
 
@@ -218,127 +217,7 @@ int stateAnalyzer (FILE *input, char *output, char *encodedOutput) {
 			initializeCharArray(currentWord);
 			i=0;
 
-			closureState = doesCharRequireClosure(character1);
-
-			printf("Does char require closure? Answer: %d\n\n", closureState);
-
-			// Discern between a common punctuation character and one that needs closure:
-			if( closureState == SIMPLE_CHARACTER ){
-
-				strncat(output, &character1, 1);
-				strncat(output, " ", 1);
-
-				tempPunctuationIdentifier = getPunctuationIdentifier(character1);
-
-				printf("The punctuation identifier is: %d\n\n", tempPunctuationIdentifier);
-
-				sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
-
-			} else if ( closureState == POSSIBLE_COMPLEX_CHAR ) {
-
-					if ( character1 == '<' && character2 != '=' && character2 != '>') {
-
-						strncat(output, "<", 1);
-						strncat(output, " ", 1);
-
-						tempPunctuationIdentifier = getPunctuationIdentifier('<');
-						sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
-
-					} else if( character1 == '<' && character2 == '=') {
-
-						getc(input); // Get the peeked character out of the way for the next loop
-						strncat(output, "<=", 2);
-						strncat(output, " ", 1);
-
-						tempPunctuationIdentifier = lessequals;
-						sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
-
-					} else if ( character1 == '<' && character2 == '>') {
-
-						getc(input); // Get the peeked character out of the way for the next loop
-						strncat(output, "<>", 2);
-						strncat(output, " ", 1);
-
-						tempPunctuationIdentifier = different;
-						sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
-
-					} else if ( character1 == '>' && character2 == '=') {
-
-						getc(input); // Get the peeked character out of the way for the next loop
-						strncat(output, ">=", 2);
-						strncat(output, " ", 1);
-
-						tempPunctuationIdentifier = moreequals;
-						sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
-
-					} else if ( character1 == '>' && character2 != '=') {
-
-						strncat(output, ">", 1);
-						strncat(output, " ", 1);
-
-						tempPunctuationIdentifier = getPunctuationIdentifier('>');
-						sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
-
-					}  else if ( character1 == '/' && character2 == '*') {
-
-						printf("We know that a comment section begins.\n\n");
-
-						// Here we know that comments open, so we go through the input to find
-						// their closing point, and ignore everything between the comment symbols:
-
-						character1 = getc(input);
-						character2 = peek(input);
-
-						printf("Character1: %c\n", character1);
-						printf("Character2: %c\n\n", character2);
-
-						while ( (character1 != '*') || (character2 != '/') ) {
-
-							character1 = getc(input);
-							character2 = peek(input);
-
-							printf("loop.\n");
-
-							if( character1 == EOF ){
-								// This means that the file ends before the comments close
-								state = STATE_ERROR;
-							}
-						}
-
-						getc(input);
-						// Get the peeked character (in our case '/') out of the way
-
-					} else if ( character1 == ':' && character2 == '=' ) {
-
-						getc(input);
-						strncat(output, ":=", 2);
-						strncat(output, " ", 1);
-
-						tempPunctuationIdentifier = assign;
-						sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
-
-					} else if ( character1 == '*' && character2 == '/'){
-
-						// This error happens if we find a comment-close character before we find a comment-open one:
-						state = STATE_ERROR;
-					}
-
-
-			} else if (closureState == REQUIRES_CLOSURE || closureState == IS_CLOSURE_CHARACTER) {
-
-				// To-Do: Maybe we will have to check for closure - but I don't know yet
-				
-				strncat(output, &character1, 1);
-				strncat(output, " ", 1);
-
-				tempPunctuationIdentifier = getPunctuationIdentifier(character1);
-				sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
-
-			} else if (closureState == STATE_ERROR){
-
-				state = STATE_ERROR;
-
-			}
+			checkCharacterForComplexAndAddIt();
 
 
 		} else if (state == STATE_WHITESPACE && isdigit(character1)) { // State Number: Starts with digit -> It's an integer
@@ -372,10 +251,6 @@ int stateAnalyzer (FILE *input, char *output, char *encodedOutput) {
 		} else if (state == STATE_NUMBER && ispunct(character1)) {
 
 			checkNumberAndAddToOutput();
-
-			// NOTE: This part of code is DUPLICATED below.
-			// Maybe I will clean this up later and make it
-			// a discrete function.
 
 			// ...and then, we check the punctuation symbol that showed up (if it's simple or complex character):
 
@@ -432,14 +307,10 @@ int doesCharRequireClosure (char character) {
 
 	printf("The character to be examined is %c\n\n", character);
 
-	if( character == '+' | character == '-' | character == '=' | character == ',' | character == ';') {
+	if( character == '+' | character == '-' | character == '=' | character == ',' | character == ';' | character == '{'| character == '[' | character == '(' | character == '}' | character == ']' | character == ')') {
 		return (SIMPLE_CHARACTER);
 	} else if ( character == '<'| character == '>'| character == ':' | character == '/') {
 		return (POSSIBLE_COMPLEX_CHAR);
-	} else if ( character == '{'| character == '[' | character == '(') {
-		return (REQUIRES_CLOSURE);
-	} else if ( character == '}' | character == ']' | character == ')') {
-		return (IS_CLOSURE_CHARACTER);
 	} else {
 		return (STATE_ERROR);
 	}
@@ -450,7 +321,7 @@ void initializeCharArray (char *characterArray) {
 
 	int i=0;
 
-	for(i=0; i<(sizeof(characterArray)/sizeof(characterArray[0])); i++){
+	for(i=0; i<BIG_CHARACTER_ARRAY_LENGTH; i++){
 		characterArray[i] = '\0';
 	};
 }
@@ -574,123 +445,112 @@ void checkCharacterForComplexAndAddIt() {
 
 	closureState = doesCharRequireClosure(character1);
 
-			printf("Does char require closure? Answer: %d\n\n", closureState);
+	printf("Does char require closure? Answer: %d\n\n", closureState);
 
-			// Discern between a common punctuation character and one that needs closure:
-			if( closureState == SIMPLE_CHARACTER ){
+	// Discern between a common punctuation character and one that needs closure:
+	if( closureState == SIMPLE_CHARACTER ){
 
-				strncat(output, &character1, 1);
+		strncat(output, &character1, 1);
+		strncat(output, " ", 1);
+
+		tempPunctuationIdentifier = getPunctuationIdentifier(character1);
+
+		printf("The punctuation identifier is: %d\n\n", tempPunctuationIdentifier);
+
+		sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
+
+	} else if ( closureState == POSSIBLE_COMPLEX_CHAR ) {
+
+			if ( character1 == '<' && character2 != '=' && character2 != '>') {
+
+				strncat(output, "<", 1);
 				strncat(output, " ", 1);
 
-				tempPunctuationIdentifier = getPunctuationIdentifier(character1);
-
-				printf("The punctuation identifier is: %d\n\n", tempPunctuationIdentifier);
-
+				tempPunctuationIdentifier = getPunctuationIdentifier('<');
 				sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
 
-			} else if ( closureState == POSSIBLE_COMPLEX_CHAR ) {
+			} else if( character1 == '<' && character2 == '=') {
 
-					if ( character1 == '<' && character2 != '=' && character2 != '>') {
+				getc(input); // Get the peeked character out of the way for the next loop
+				strncat(output, "<=", 2);
+				strncat(output, " ", 1);
 
-						strncat(output, "<", 1);
-						strncat(output, " ", 1);
+				tempPunctuationIdentifier = lessequals;
+				sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
 
-						tempPunctuationIdentifier = getPunctuationIdentifier('<');
-						sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
+			} else if ( character1 == '<' && character2 == '>') {
 
-					} else if( character1 == '<' && character2 == '=') {
+				getc(input); // Get the peeked character out of the way for the next loop
+				strncat(output, "<>", 2);
+				strncat(output, " ", 1);
 
-						getc(input); // Get the peeked character out of the way for the next loop
-						strncat(output, "<=", 2);
-						strncat(output, " ", 1);
+				tempPunctuationIdentifier = different;
+				sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
 
-						tempPunctuationIdentifier = lessequals;
-						sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
+			} else if ( character1 == '>' && character2 == '=') {
 
-					} else if ( character1 == '<' && character2 == '>') {
+				getc(input); // Get the peeked character out of the way for the next loop
+				strncat(output, ">=", 2);
+				strncat(output, " ", 1);
 
-						getc(input); // Get the peeked character out of the way for the next loop
-						strncat(output, "<>", 2);
-						strncat(output, " ", 1);
+				tempPunctuationIdentifier = moreequals;
+				sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
 
-						tempPunctuationIdentifier = different;
-						sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
+			} else if ( character1 == '>' && character2 != '=') {
 
-					} else if ( character1 == '>' && character2 == '=') {
+				strncat(output, ">", 1);
+				strncat(output, " ", 1);
 
-						getc(input); // Get the peeked character out of the way for the next loop
-						strncat(output, ">=", 2);
-						strncat(output, " ", 1);
+				tempPunctuationIdentifier = getPunctuationIdentifier('>');
+				sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
 
-						tempPunctuationIdentifier = moreequals;
-						sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
+			}  else if ( character1 == '/' && character2 == '*') {
 
-					} else if ( character1 == '>' && character2 != '=') {
+				printf("We know that a comment section begins.\n\n");
 
-						strncat(output, ">", 1);
-						strncat(output, " ", 1);
+				// Here we know that comments open, so we go through the input to find
+				// their closing point, and ignore everything between the comment symbols:
 
-						tempPunctuationIdentifier = getPunctuationIdentifier('>');
-						sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
+				character1 = getc(input);
+				character2 = peek(input);
 
-					}  else if ( character1 == '/' && character2 == '*') {
+				printf("Character1: %c\n", character1);
+				printf("Character2: %c\n\n", character2);
 
-						printf("We know that a comment section begins.\n\n");
+				while ( (character1 != '*') || (character2 != '/') ) {
 
-						// Here we know that comments open, so we go through the input to find
-						// their closing point, and ignore everything between the comment symbols:
+					character1 = getc(input);
+					character2 = peek(input);
 
-						character1 = getc(input);
-						character2 = peek(input);
+					printf("loop.\n");
 
-						printf("Character1: %c\n", character1);
-						printf("Character2: %c\n\n", character2);
-
-						while ( (character1 != '*') || (character2 != '/') ) {
-
-							character1 = getc(input);
-							character2 = peek(input);
-
-							printf("loop.\n");
-
-							if( character1 == EOF ){
-								// This means that the file ends before the comments close
-								state = STATE_ERROR;
-							}
-						}
-
-						getc(input);
-						 // Get the peeked character (in our case '/') out of the way
-
-					} else if ( character1 == ':' && character2 == '=' ) {
-
-						getc(input);
-						strncat(output, ":=", 2);
-						strncat(output, " ", 1);
-
-						tempPunctuationIdentifier = assign;
-						sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
-
-					} else if ( character1 == '*' && character2 == '/'){
-
-						// This error happens if we find a comment-close character before we find a comment-open one:
+					if( character1 == EOF ){
+						// This means that the file ends before the comments close
 						state = STATE_ERROR;
 					}
+				}
 
+				getc(input);
+				 // Get the peeked character (in our case '/') out of the way
 
-			} else if (closureState == REQUIRES_CLOSURE || closureState == IS_CLOSURE_CHARACTER) {
+			} else if ( character1 == ':' && character2 == '=' ) {
 
-				// To-Do: Maybe we will have to check for closure - but I don't know yet
-				
-				strncat(output, &character1, 1);
+				getc(input);
+				strncat(output, ":=", 2);
 				strncat(output, " ", 1);
 
-				tempPunctuationIdentifier = getPunctuationIdentifier(character1);
+				tempPunctuationIdentifier = assign;
 				sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
 
-			} else if (closureState == STATE_ERROR){
+			} else if ( character1 == '*' && character2 == '/'){
 
+				// This error happens if we find a comment-close character before we find a comment-open one:
 				state = STATE_ERROR;
-
 			}
+
+	} else if (closureState == STATE_ERROR){
+
+		state = STATE_ERROR;
+
+	}
 }
