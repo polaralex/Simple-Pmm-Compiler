@@ -74,7 +74,3 @@
 
 // Error:
 #define VARIABLE_ERROR -1
-
-// Intercode Helper Defines:
-#define IT_IS_MAIN_BLOCK true
-#define IT_IS_NOT_MAIN_BLOCK false

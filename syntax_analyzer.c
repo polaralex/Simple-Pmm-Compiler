@@ -4,11 +4,10 @@
 #include <ctype.h>
 #include "defines.h"
 #include "intercode_functions.c"
-#include <stdbool.h>
 
 // P-- Grammar:
 void program();
-void block(char function_name[30], bool isItMainBlock);
+void block(char function_name[30], int isItMainBlock);
 void declarations();
 void expression(char *E_place);
 void brack_or_stat();
@@ -32,7 +31,7 @@ void add_oper();
 void subprograms();
 void sequence();
 void condition(label_node *B_True, label_node *B_False);
-void funcBody(char procedure_name[30], bool isItMainBlock);
+void funcBody(char procedure_name[30]);
 void func();
 void formalPars();
 void formalParList();
@@ -59,7 +58,7 @@ void program() {
 
 		if ( token == VARIABLE ) {
 
-			block(function_name, IT_IS_MAIN_BLOCK);
+			block(function_name, 1);
 
 		} else {
 			error("Program name expected.");
@@ -70,7 +69,7 @@ void program() {
 	}
 }
 
-void block(char function_name[30], bool isItMainBlock) {
+void block(char function_name[30], int isItMainBlock) {
 
 	printf("Syntax Debug: Inside Block.\n\n");
 
@@ -88,7 +87,7 @@ void block(char function_name[30], bool isItMainBlock) {
 
 		sequence();
 
-		if ( isItMainBlock == true ) {
+		if ( isItMainBlock == 1 ) {
 			genquad("halt", "_", "_", "_");
 		}
 
@@ -287,22 +286,37 @@ void expression(char *E_place) {
 
 	char *T1_Place;
 	T1_Place = malloc(sizeof(char)*30);
+
 	term(T1_Place);
 
 	while (peekToken == plus || peekToken == minus) {
 
 		add_oper();
 
-		char *T2_Place;
-		T2_Place = malloc(sizeof(char)*30);
+		if ( token == plus ) {
 
-		term(T2_Place);
+			char *T2_Place;
+			T2_Place = malloc(sizeof(char)*30);
 
-		// {P1}:
-		char *w = newtemp();
-		genquad("+", T1_Place, T2_Place, w);
-		T1_Place = w;
+			term(T2_Place);
 
+			// {P1}:
+			char *w = newtemp();
+			genquad("+", T1_Place, T2_Place, w);
+			strcpy(T1_Place, w);
+
+		} else if ( token == minus ) {
+
+			char *T2_Place;
+			T2_Place = malloc(sizeof(char)*30);
+
+			term(T2_Place);
+
+			// {P1}:
+			char *w = newtemp();
+			genquad("-", T1_Place, T2_Place, w);
+			strcpy(T1_Place, w);
+		}
 	}
 
 	// {P2}:
@@ -335,7 +349,7 @@ void func() {
 			char procedure_name[30];
 			strcpy(procedure_name, "temp_procedure_name");
 
-			funcBody(procedure_name, IT_IS_NOT_MAIN_BLOCK);
+			funcBody(procedure_name);
 		}
 
 	} else if (token == function_a) {
@@ -347,7 +361,7 @@ void func() {
 			char function_name[30];
 			strcpy(function_name, "temp_function_name");
 
-			funcBody(function_name, IT_IS_NOT_MAIN_BLOCK);
+			funcBody(function_name);
 		}
 
 	} else {
@@ -355,12 +369,12 @@ void func() {
 	}
 }
 
-void funcBody(char procedure_name[30], bool isItMainBlock) {
+void funcBody(char procedure_name[30]) {
 
 	printf("Syntax Debug: Inside funcBody.\n\n");
 
 	formalPars();
-	block(procedure_name, isItMainBlock);
+	block(procedure_name, 0);
 
 }
 
@@ -497,8 +511,9 @@ void brackets_seq() {
 	}
 }
 
-void statement(char *E_Place) {
+void statement(char *S_Place) {
 	// TODO: Check the validity of *E_Place here, as a parameter.
+	// Probably NOT correct.
 
 	printf("Syntax Debug: Inside statement.\n\n");
 
@@ -516,7 +531,9 @@ void statement(char *E_Place) {
 
 		if ( token == assign ) {
 
+			char *E_Place = malloc(sizeof(char)*30);
 			expression(E_Place);
+
 			genquad(":=", E_Place, "_", assignment_target);
 
 		} else {
@@ -658,7 +675,8 @@ void statement(char *E_Place) {
 
 				// Note: The following E_Place is defined
 				// as a parameter in the parent function.
-
+				
+				char *E_Place = malloc(sizeof(char)*30);
 				expression(E_Place);
 
 				getNextToken();
@@ -718,6 +736,7 @@ void statement(char *E_Place) {
 
 		if ( token == parenthleft ) {
 
+			char *E_Place = malloc(sizeof(char)*30);
 			expression(E_Place);
 
 			getNextToken();
@@ -742,6 +761,7 @@ void statement(char *E_Place) {
 
 		if ( token == parenthleft ) {
 
+			char *E_Place = malloc(sizeof(char)*30);
 			expression(E_Place);
 
 			getNextToken();
@@ -919,15 +939,30 @@ void term(char *T_Place) {
 
 		mul_oper();
 
-		char *F2_Place;
-		F2_Place = malloc(sizeof(char)*30);
+		if (token == multipl) {
 
-		factor(F2_Place);
+			char *F2_Place;
+			F2_Place = malloc(sizeof(char)*30);
 
-		// {P1}:
-		char *w = newtemp();
-		genquad("x", F1_Place, F2_Place, w);
-		F1_Place = w;
+			factor(F2_Place);
+
+			// {P1}:
+			char *w = newtemp();
+			genquad("x", F1_Place, F2_Place, w);
+			strcpy(F1_Place, w);
+
+		} else if (token == divide) {
+
+			char *F2_Place;
+			F2_Place = malloc(sizeof(char)*30);
+
+			factor(F2_Place);
+
+			// {P1}:
+			char *w = newtemp();
+			genquad("/", F1_Place, F2_Place, w);
+			strcpy(F1_Place, w);
+		}
 	}
 
 	// {P2}:
@@ -943,12 +978,16 @@ void factor(char *F_Place) {
 
 	if ( token == INTEGER ) {
 
-		// do nothing
+		// Here we have to give the Integer value
+		// the the new 'w' temp:
+		char *temp_constant = newtemp();
+		strcpy(F_Place, temp_constant);
 
 	} else if ( token == parenthleft ) {
 
-		// TODO: Check this E_Place:
 		char *E_Place;
+		E_Place = malloc(sizeof(char)*30);
+
 		expression(E_Place);
 
 		getNextToken();
@@ -957,12 +996,18 @@ void factor(char *F_Place) {
 			error("Closing parenthesis needed for 'factor' expression.");
 		}
 
+		F_Place = malloc(sizeof(char)*30);
+		strcpy(F_Place, E_Place);
+
 	} else if ( token == VARIABLE ) {
 
 		char *Id_Place;
 		Id_Place = malloc(sizeof(char)*30);
 
 		idtail(Id_Place);
+
+		F_Place = malloc(sizeof(char)*30);
+		strcpy(F_Place, Id_Place);
 	}
 }
 

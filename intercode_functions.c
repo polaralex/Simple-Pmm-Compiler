@@ -12,17 +12,17 @@ typedef struct quad {
 	char result[30];
 } quartet;
 
-// List that holds only label numbers:
-typedef struct label_list {
-	int label;
-	struct label_list *next;
-} label_node;
-
 // The list that stores the produced Quads for the intercode:
 typedef struct quartet_list {
 	struct quad quartet;
 	struct quartet_list *next;
 } quartet_node;
+
+// List that holds only label numbers:
+typedef struct label_list {
+	int label;
+	struct label_list *next;
+} label_node;
 
 // Helper Subroutines:
 int nextquad();
@@ -30,7 +30,7 @@ void genquad(char operator[30], char argument1[30], char argument2[30], char res
 char * newtemp();
 
 // List pointers:
-quartet_node *quad_list_head;
+quartet_node *quad_list_head; //This is the genquad list.
 label_node *label_head;
 
 label_node * emptylist();
@@ -62,13 +62,17 @@ void genquad (char operator[30], char argument1[30], char argument2[30], char re
 
 	new_node->next = NULL;
 
-	// If the list is empty, make this new-node the head:
+	// If the list is empty, make this new node the head:
 	if ( quad_list_head == NULL ) {
+
 		quad_list_head = new_node;
+
 	} else {
 
 		while( current->next != NULL ) {
+
 			current = current->next;
+
 		}
 
 		// We reach this point, when we are at the last node:
@@ -175,7 +179,9 @@ void printQuadsToFile(quartet_node *quadsList) {
     	exit(1);
 	}
 
-	while (quadsList->next != NULL && failsafe < 100) {
+	fprintf(quadsOutputFile, "\n");
+
+	while (quadsList != NULL && failsafe < 100) {
 
 		// Temporary holders for the output String values:
 		char label[30];
@@ -204,5 +210,6 @@ void printQuadsToFile(quartet_node *quadsList) {
 		failsafe++;
 	}
 
+	fprintf(quadsOutputFile, "\n");
 	fclose(quadsOutputFile);
 }
