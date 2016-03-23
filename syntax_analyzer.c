@@ -21,7 +21,7 @@ void boolFactor(label_node *R_True, label_node *R_False);
 void factor(char **F_Place);
 void mul_oper();
 void if_stat();
-void idtail(char *Id_Place);
+void idtail(char **Id_Place);
 void elsepart();
 void varlist();
 void relational_oper();
@@ -522,9 +522,10 @@ void statement() {
 		// Consume "VARIABLE":
 		getNextToken();
 
-		// TODO: Here, I should get Variable's name.
+		// Here, I should get Variable's name. (?)
 		// Is this correct?
-		char *assignment_target = newtemp();
+		char assignment_target[30];
+		strcpy(assignment_target, currentLexeme);
 
 		getNextToken();
 
@@ -536,7 +537,7 @@ void statement() {
 			genquad(":=", E_Place, "_", assignment_target);
 
 		} else {
-			error("Assignment symbol needed after Variable ID");
+			error("Assignment symbol ':=' needed after Variable ID");
 		}
 
 	// If-Stat:
@@ -671,9 +672,6 @@ void statement() {
 			getNextToken();
 
 			if ( token == assign ) {
-
-				// Note: The following E_Place is defined
-				// as a parameter in the parent function.
 				
 				char *E_Place = malloc(sizeof(char)*30);
 				expression(&E_Place);;
@@ -716,8 +714,7 @@ void statement() {
 		if ( token == VARIABLE ) {
 
 			char function_name[30];
-			strcpy(function_name, "temp_function_name");
-			// TODO: Make it take the name of the function.
+			strcpy(function_name, currentLexeme);
 
 			actualpars();
 
@@ -789,7 +786,6 @@ void actualpars() {
 		if ( peekToken == in_a || peekToken == inout_a ) {
 
 			actualparlist();
-
 		}
 
 		getNextToken();
@@ -832,12 +828,10 @@ void actualparitem() {
 
 	if ( token == in_a ) {
 
-		char *E_Place = malloc(sizeof(30));
+		char *E_Place = malloc(sizeof(char)*30);
 
 		expression(&E_Place);;
-		// TODO: Εδώ πως θα λειτουργεί η παράμετρος σε σχέση με
-		// το expression;;;???
-		// (+) Είναι το E_Place σωστό στη συνέχεια???
+
 		genquad("par", E_Place, "CV", "_");
 
 	} else if ( token == inout_a ) {
@@ -848,10 +842,7 @@ void actualparitem() {
 			error("Variable needed after 'inout' of 'call' statement.");
 		}
 
-		char inout_parameter[30];
-		strcpy(inout_parameter, "temp_inout_id");
-		// Todo: Take the parameter's name.
-		genquad("par", inout_parameter, "REF", "_");
+		genquad("par", currentLexeme, "REF", "_");
 
 	} else {
 		error("Missing 'in' or 'inout' expression after 'call' statement.");
@@ -965,7 +956,6 @@ void term(char **T_Place) {
 
 	// {P2}:
 	*T_Place = malloc(sizeof(char)*30);
-	printf("!!!!!!!What is inside F1_Place: %s", F1_Place);
 	strcpy(*T_Place, F1_Place);
 }
 
@@ -1001,19 +991,39 @@ void factor(char **F_Place) {
 
 	} else if ( token == VARIABLE ) {
 
-		char *Id_Place;
-		Id_Place = malloc(sizeof(char)*30);
+		if ( peekToken == parenthleft ) {
 
-		idtail(Id_Place);
+			// Case: ID <IDTAIL>
 
-		*F_Place = malloc(sizeof(char)*30);
-		strcpy(*F_Place, Id_Place);
+			char tempLexeme[30];
+			strcpy(tempLexeme, currentLexeme);
+
+			char *Id_Place = malloc(sizeof(char)*30);
+
+			idtail(&Id_Place);
+
+			genquad("call", tempLexeme, "_", "_");
+
+			*F_Place = malloc(sizeof(char)*30);
+			strcpy(*F_Place, Id_Place);
+
+
+		} else {
+
+			// Case: ID (terminal symbol)
+
+			*F_Place = malloc(sizeof(char)*30);
+			strcpy(*F_Place, currentLexeme);
+		}
 	}
 }
 
-void idtail(char *Id_Place) {
+void idtail(char **Id_Place) {
 
 	printf("Syntax Debug: Inside idtail.\n\n");
+
+	char temp_lexeme_storage[30];
+	strcpy(temp_lexeme_storage, currentLexeme);
 
 	if ( peekToken == parenthleft ) {
 
@@ -1021,9 +1031,9 @@ void idtail(char *Id_Place) {
 
 		char *w = newtemp();
 		genquad("par", w, "RET", "_");
-		genquad("call", Id_Place, "_", "_");
-		// TODO: How to return this??? And go upstairs...
 
+		*Id_Place = malloc(sizeof(char *)*30);
+		strcpy(*Id_Place, w);
 	}
 }
 
