@@ -183,6 +183,7 @@ int stateAnalyzer (FILE *input, char *output, char *encodedOutput) {
 			// Original:
 			strncat(output, currentWord, i);
 			strncat(output, " ", i);
+			addLexeme(currentWord);
 
 			// Encoded:
 			if( isItSensitiveWord == NOT_SENSITIVE ){
@@ -205,6 +206,7 @@ int stateAnalyzer (FILE *input, char *output, char *encodedOutput) {
 
 			// Original:
 			strncat(output, currentWord, i);
+			addLexeme(currentWord);
 			strncat(output, " ", i);
 
 			// Encoded:
@@ -428,6 +430,7 @@ void checkNumberAndAddToOutput() {
 		state = STATE_WHITESPACE;
 
 		sprintf(output + strlen(output), "%s ", currentWord);
+		addLexeme(currentWord);
 		sprintf(encodedOutput + strlen(encodedOutput), "%d ", INTEGER);
 
 		initializeCharArray(currentWord);
@@ -452,6 +455,7 @@ void checkCharacterForComplexAndAddIt() {
 
 		strncat(output, &character1, 1);
 		strncat(output, " ", 1);
+		addLexeme("ENCODED");
 
 		tempPunctuationIdentifier = getPunctuationIdentifier(character1);
 
@@ -465,6 +469,7 @@ void checkCharacterForComplexAndAddIt() {
 
 				strncat(output, "<", 1);
 				strncat(output, " ", 1);
+				addLexeme("ENCODED");
 
 				tempPunctuationIdentifier = getPunctuationIdentifier('<');
 				sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
@@ -474,6 +479,7 @@ void checkCharacterForComplexAndAddIt() {
 				getc(input); // Get the peeked character out of the way for the next loop
 				strncat(output, "<=", 2);
 				strncat(output, " ", 1);
+				addLexeme("ENCODED");
 
 				tempPunctuationIdentifier = lessequals;
 				sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
@@ -483,6 +489,7 @@ void checkCharacterForComplexAndAddIt() {
 				getc(input); // Get the peeked character out of the way for the next loop
 				strncat(output, "<>", 2);
 				strncat(output, " ", 1);
+				addLexeme("ENCODED");
 
 				tempPunctuationIdentifier = different;
 				sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
@@ -492,6 +499,7 @@ void checkCharacterForComplexAndAddIt() {
 				getc(input); // Get the peeked character out of the way for the next loop
 				strncat(output, ">=", 2);
 				strncat(output, " ", 1);
+				addLexeme("ENCODED");
 
 				tempPunctuationIdentifier = moreequals;
 				sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
@@ -500,6 +508,7 @@ void checkCharacterForComplexAndAddIt() {
 
 				strncat(output, ">", 1);
 				strncat(output, " ", 1);
+				addLexeme("ENCODED");
 
 				tempPunctuationIdentifier = getPunctuationIdentifier('>');
 				sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
@@ -538,6 +547,7 @@ void checkCharacterForComplexAndAddIt() {
 				getc(input);
 				strncat(output, ":=", 2);
 				strncat(output, " ", 1);
+				addLexeme("ENCODED");
 
 				tempPunctuationIdentifier = assign;
 				sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
