@@ -330,7 +330,7 @@ int doesCharRequireClosure (char character) {
 
 	printf("The character to be examined is %c\n\n", character);
 
-	if( character == '+' | character == '-' | character == '=' | character == ',' | character == ';' | character == '{'| character == '[' | character == '(' | character == '}' | character == ']' | character == ')') {
+	if( character == '+' | character == '-' | character == '*' | character == '=' | character == ',' | character == ';' | character == '{'| character == '[' | character == '(' | character == '}' | character == ']' | character == ')') {
 		return (SIMPLE_CHARACTER);
 	} else if ( character == '<'| character == '>'| character == ':' | character == '/') {
 		return (POSSIBLE_COMPLEX_CHAR);
@@ -562,6 +562,15 @@ void checkCharacterForComplexAndAddIt() {
 
 				getc(input);
 				 // Get the peeked character (in our case '/') out of the way
+
+			} else if ( character1 == '/' && character2 != '*') {
+
+				strncat(output, "/", 1);
+				strncat(output, " ", 1);
+				addLexeme("ENCODED");
+
+				tempPunctuationIdentifier = getPunctuationIdentifier('/');
+				sprintf(encodedOutput + strlen(encodedOutput), "%d ", tempPunctuationIdentifier);
 
 			} else if ( character1 == ':' && character2 == '=' ) {
 

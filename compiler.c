@@ -6,7 +6,6 @@
 #include "functions.h"
 #include "lex.c"
 #include "syntax_analyzer.c"
-#include <stdbool.h>
 
 int main(int argc, char *argv[]) {
 
@@ -35,8 +34,12 @@ int main(int argc, char *argv[]) {
 	token = lex();
 	printf("Compiler: Token is %d \n\n", token);
 
+	if ( analysis_done == 0 ) {
+		error("Lexicographical Analysis could not be completed. Please, check the input for errors.\n");
+	}
+
 	// Then, continue to the Syntax Analyzer:
-	program();
+		program();
 
 	// Finally, create (and populate) the Text file containing the Quads List:
 	printQuadsToFile(quad_list_head);
