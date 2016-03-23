@@ -9,7 +9,7 @@
 void program();
 void block(char function_name[30], int isItMainBlock);
 void declarations();
-void expression(char *E_place);
+void expression(char **E_place);
 void brack_or_stat();
 void formalParItem();
 void statement();
@@ -18,7 +18,7 @@ void actualparlist();
 void actualparitem();
 void boolterm(label_node *Q_True, label_node *Q_False);
 void boolFactor(label_node *R_True, label_node *R_False);
-void factor(char *F_Place);
+void factor(char **F_Place);
 void mul_oper();
 void if_stat();
 void idtail(char *Id_Place);
@@ -26,7 +26,7 @@ void elsepart();
 void varlist();
 void relational_oper();
 void optionalSign();
-void term(char *T_Place);
+void term(char **T_Place);
 void add_oper();
 void subprograms();
 void sequence();
@@ -52,11 +52,12 @@ void program() {
 
 	if( token == program_a ){
 
-		char function_name[30] = "temp_program_name";
-
 		getNextToken();
 
 		if ( token == VARIABLE ) {
+
+			char function_name[30];
+			strcpy(function_name, currentLexeme);
 
 			block(function_name, 1);
 
@@ -270,15 +271,15 @@ void boolFactor(label_node *R_True, label_node *R_False) {
 
 		char *E_Place;
 
-		expression(E_Place);
+		expression(&E_Place);;
 		relational_oper();
-		expression(E_Place);
+		expression(&E_Place);;
 
 	}
 
 }
 
-void expression(char *E_place) {
+void expression(char **E_place) {
 
 	printf("Syntax Debug: Inside expression.\n\n");
 
@@ -287,7 +288,7 @@ void expression(char *E_place) {
 	char *T1_Place;
 	T1_Place = malloc(sizeof(char)*30);
 
-	term(T1_Place);
+	term(&T1_Place);
 
 	while (peekToken == plus || peekToken == minus) {
 
@@ -298,7 +299,7 @@ void expression(char *E_place) {
 			char *T2_Place;
 			T2_Place = malloc(sizeof(char)*30);
 
-			term(T2_Place);
+			term(&T2_Place);
 
 			// {P1}:
 			char *w = newtemp();
@@ -310,7 +311,7 @@ void expression(char *E_place) {
 			char *T2_Place;
 			T2_Place = malloc(sizeof(char)*30);
 
-			term(T2_Place);
+			term(&T2_Place);
 
 			// {P1}:
 			char *w = newtemp();
@@ -320,8 +321,8 @@ void expression(char *E_place) {
 	}
 
 	// {P2}:
-	E_place = malloc(sizeof(30));
-	strcpy(E_place, T1_Place);
+	*E_place = malloc(sizeof(30));
+	strcpy(*E_place, T1_Place);
 }
 
 void subprograms() {
@@ -511,28 +512,26 @@ void brackets_seq() {
 	}
 }
 
-void statement(char *S_Place) {
-	// TODO: Check the validity of *E_Place here, as a parameter.
-	// Probably NOT correct.
+void statement() {
 
 	printf("Syntax Debug: Inside statement.\n\n");
 
 	// Assignment-Stat:
 	if ( peekToken == VARIABLE ) {
 
+		// Consume "VARIABLE":
+		getNextToken();
+
 		// TODO: Here, I should get Variable's name.
 		// Is this correct?
 		char *assignment_target = newtemp();
-
-		// Consume "VARIABLE":
-		getNextToken();
 
 		getNextToken();
 
 		if ( token == assign ) {
 
 			char *E_Place = malloc(sizeof(char)*30);
-			expression(E_Place);
+			expression(&E_Place);;
 
 			genquad(":=", E_Place, "_", assignment_target);
 
@@ -677,20 +676,20 @@ void statement(char *S_Place) {
 				// as a parameter in the parent function.
 				
 				char *E_Place = malloc(sizeof(char)*30);
-				expression(E_Place);
+				expression(&E_Place);;
 
 				getNextToken();
 
 				if ( token == to_a ) {
 
-					expression(E_Place);
+					expression(&E_Place);;
 					
 					if ( peekToken == step_a ) {
 
 						// Consume "step_a":
 						getNextToken();
 
-						expression(E_Place);
+						expression(&E_Place);;
 
 					}
 
@@ -737,7 +736,7 @@ void statement(char *S_Place) {
 		if ( token == parenthleft ) {
 
 			char *E_Place = malloc(sizeof(char)*30);
-			expression(E_Place);
+			expression(&E_Place);;
 
 			getNextToken();
 
@@ -762,7 +761,7 @@ void statement(char *S_Place) {
 		if ( token == parenthleft ) {
 
 			char *E_Place = malloc(sizeof(char)*30);
-			expression(E_Place);
+			expression(&E_Place);;
 
 			getNextToken();
 
@@ -835,7 +834,7 @@ void actualparitem() {
 
 		char *E_Place = malloc(sizeof(30));
 
-		expression(E_Place);
+		expression(&E_Place);;
 		// TODO: Εδώ πως θα λειτουργεί η παράμετρος σε σχέση με
 		// το expression;;;???
 		// (+) Είναι το E_Place σωστό στη συνέχεια???
@@ -926,14 +925,13 @@ void boolterm(label_node *Q_True, label_node *Q_False) {
 	}
 }
 
-void term(char *T_Place) {
+void term(char **T_Place) {
 
 	printf("Syntax Debug: Inside term.\n\n");
 
 	char *F1_Place;
-	F1_Place = malloc(sizeof(char)*30);
-
-	factor(F1_Place);
+	F1_Place=malloc(sizeof(30));
+	factor(&F1_Place);
 
 	while ( peekToken == multipl || peekToken == divide ){
 
@@ -944,7 +942,7 @@ void term(char *T_Place) {
 			char *F2_Place;
 			F2_Place = malloc(sizeof(char)*30);
 
-			factor(F2_Place);
+			factor(&F2_Place);
 
 			// {P1}:
 			char *w = newtemp();
@@ -956,7 +954,7 @@ void term(char *T_Place) {
 			char *F2_Place;
 			F2_Place = malloc(sizeof(char)*30);
 
-			factor(F2_Place);
+			factor(&F2_Place);
 
 			// {P1}:
 			char *w = newtemp();
@@ -966,11 +964,12 @@ void term(char *T_Place) {
 	}
 
 	// {P2}:
-	T_Place = malloc(sizeof(char)*30);
-	strcpy(T_Place, F1_Place);
+	*T_Place = malloc(sizeof(char)*30);
+	printf("!!!!!!!What is inside F1_Place: %s", F1_Place);
+	strcpy(*T_Place, F1_Place);
 }
 
-void factor(char *F_Place) {
+void factor(char **F_Place) {
 
 	printf("Syntax Debug: Inside factor.\n\n");
 
@@ -979,16 +978,17 @@ void factor(char *F_Place) {
 	if ( token == INTEGER ) {
 
 		// Here we have to give the Integer value
-		// the the new 'w' temp:
-		char *temp_constant = newtemp();
-		strcpy(F_Place, temp_constant);
+		// the the *F_Place value to be returned:
+
+		*F_Place = malloc(sizeof(char)*30);
+		strcpy(*F_Place, currentLexeme);
 
 	} else if ( token == parenthleft ) {
 
 		char *E_Place;
 		E_Place = malloc(sizeof(char)*30);
 
-		expression(E_Place);
+		expression(&E_Place);;
 
 		getNextToken();
 
@@ -996,8 +996,8 @@ void factor(char *F_Place) {
 			error("Closing parenthesis needed for 'factor' expression.");
 		}
 
-		F_Place = malloc(sizeof(char)*30);
-		strcpy(F_Place, E_Place);
+		*F_Place = malloc(sizeof(char)*30);
+		strcpy(*F_Place, E_Place);
 
 	} else if ( token == VARIABLE ) {
 
@@ -1006,8 +1006,8 @@ void factor(char *F_Place) {
 
 		idtail(Id_Place);
 
-		F_Place = malloc(sizeof(char)*30);
-		strcpy(F_Place, Id_Place);
+		*F_Place = malloc(sizeof(char)*30);
+		strcpy(*F_Place, Id_Place);
 	}
 }
 

@@ -13,6 +13,8 @@ int getPunctuationIdentifier(char inputCharacter);
 char peek(FILE *stream);
 void checkNumberAndAddToOutput();
 void checkCharacterForComplexAndAddIt();
+void addLexeme(char input_characters[30]);
+char * getLexeme(int position);
 
 // Variables (global for helping with code-cleanup):
 int nextToken;
@@ -62,6 +64,14 @@ int lex(){
 			printf("-----------------------------\n\n");
 			printf("Result: The Lex Output is '%s' \n\n", output);
 			printf("Result: The EncodedOutput is '%s' \n\n", encodedOutput);
+			
+			// Show the Lexeme List contents:
+			printf("The Lexeme List contains: \n");
+			int y;
+			for( y=0; y<lexeme_counter; y++) {
+				printf("%s, ", getLexeme(y));
+			}
+			printf("\n");
 
 			// Here begins the tokenization of the encodedOutput string:
 			nextToken = atol(strtok(encodedOutput, " "));
@@ -69,6 +79,11 @@ int lex(){
 			// And here we fill the peekToken for the first time:
 			char * tempTokenizerOutput;
 			tempTokenizerOutput = strtok(NULL, " ");
+
+			// And we fill the next Lexeme:
+			char * temp_next_lexeme = getLexeme(lexeme_parsing_counter);
+			strcpy(currentLexeme, temp_next_lexeme);
+			lexeme_parsing_counter++;
 
 			if ( tempTokenizerOutput != NULL ) {
 				peekToken = atol(tempTokenizerOutput);
@@ -105,8 +120,14 @@ int lex(){
 				peekToken = STATE_EOF;
 			}
 
+			// Getting the next Lexeme in the list:
+			char * temp_next_lexeme = getLexeme(lexeme_parsing_counter);
+			strcpy(currentLexeme, temp_next_lexeme);
+			lexeme_parsing_counter++;
+
 			printf("Next token: %d \n", nextToken);
-			printf("Peek token: %d \n\n", peekToken);
+			printf("Peek token: %d \n", peekToken);
+			printf("Next lexeme: %s \n\n", currentLexeme);
 
 			return( nextToken );
 
@@ -563,4 +584,52 @@ void checkCharacterForComplexAndAddIt() {
 		state = STATE_ERROR;
 
 	}
+}
+
+void addLexeme(char input_characters[30]) {
+
+	lexeme_counter++;
+
+	// Create the new node to be inserted in our list:
+	lexeme *new_lexeme = malloc(sizeof(lexeme));
+
+	// Add the data to the new lexeme struct:
+	strcpy(new_lexeme->word, input_characters);
+	new_lexeme->next = NULL;
+
+	// If the list is empty, make this new node the head:
+	if ( lexeme_head == NULL ) {
+
+		lexeme_head = new_lexeme;
+
+	} else {
+
+		lexeme *current = lexeme_head;
+
+		while ( current->next != NULL ) {
+			current = current->next;
+		}
+
+		// We reach this point, when we are at the last node:
+		current->next = new_lexeme;
+	}
+}
+
+char * getLexeme(int position) {
+
+	int i=0;
+
+	lexeme *lexemePointer = lexeme_head;
+
+	while ( lexemePointer != NULL && i <= position ) {
+
+		if (i == position ) {
+			return (lexemePointer->word);
+		}
+
+		lexemePointer = lexemePointer->next;
+		i++;
+	}
+
+	return(" ");
 }
