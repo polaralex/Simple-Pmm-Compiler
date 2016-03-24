@@ -234,7 +234,7 @@ void boolFactor(label_node **R_True, label_node **R_False) {
 		char* E1_Place = malloc(sizeof(char)*30);
 		expression(&E1_Place);
 
-		printf("Before calling 'relational_operator', the token is: %d\n", token);
+		printf("Debug: Before calling 'relational_operator', the token is: %d\n", token);
 
 		// relop:
 		char relational_operator[10];
@@ -323,10 +323,7 @@ void func() {
 
 		if (token == VARIABLE) {
 
-			char procedure_name[30];
-			strcpy(procedure_name, "temp_procedure_name");
-
-			funcBody(procedure_name);
+			funcBody(currentLexeme);
 		}
 
 	} else if (token == function_a) {
@@ -335,10 +332,7 @@ void func() {
 
 		if (token == VARIABLE) {
 
-			char function_name[30];
-			strcpy(function_name, "temp_function_name");
-
-			funcBody(function_name);
+			funcBody(currentLexeme);
 		}
 
 	} else {
@@ -406,9 +400,7 @@ void formalParList() {
 			}
 
 		} else {
-
 			error("Comma needed between parameter declarations.");
-
 		}
 	}
 }
@@ -424,9 +416,7 @@ void formalParItem() {
 		getNextToken();
 
 		if ( token != VARIABLE ) {
-
 			error("No variable declared in 'FormalParItem");
-		
 		}
 
 	} else if ( token == inout_a ) {
@@ -434,9 +424,7 @@ void formalParItem() {
 		getNextToken();
 
 		if ( token != VARIABLE ) {
-
 			error("No variable declared in 'FormalParItem");
-		
 		}
 	}
 }
@@ -452,7 +440,6 @@ void sequence() {
 		getNextToken();
 
 		statement();
-
 	}
 }
 
@@ -483,7 +470,6 @@ void brackets_seq() {
 		if ( token != curlbrackright ) {
 
 			error("Curly brackets must close after opening.");
-
 		}
 	}
 }
@@ -500,8 +486,6 @@ void statement() {
 		// Consume "VARIABLE":
 		getNextToken();
 
-		// Here, I should get Variable's name. (?)
-		// Is this correct?
 		char assignment_target[30];
 		strcpy(assignment_target, currentLexeme);
 
@@ -591,8 +575,8 @@ void statement() {
 			// Turn the (int)B_Quad to a character string:
 			char B_Quad_as_String[30];
 			sprintf(B_Quad_as_String, "%d", B_Quad);
-
 			genquad("jump", "_", "_", B_Quad_as_String);
+
 			backpatch(B_False, nextquad());
 		}
 
@@ -734,6 +718,7 @@ void statement() {
 
 		if ( token == VARIABLE ) {
 
+			// Hold the function name, before it's consumed:
 			char function_name[30];
 			strcpy(function_name, currentLexeme);
 
@@ -741,6 +726,8 @@ void statement() {
 
 			genquad("call", function_name, "_", "_");
 
+		} else {
+			error("Function ID expected after 'call' declaration.");
 		}
 
 	// Return-Stat:
@@ -820,9 +807,7 @@ void actualpars() {
 		}
 
 	} else {
-
 		error("Parentheses needed for Parameters definition ('actualpars').");
-	
 	}
 }
 
@@ -841,7 +826,6 @@ void actualparlist() {
 		}
 
 		actualparitem();
-
 	}
 }
 
@@ -990,7 +974,7 @@ void factor(char **F_Place) {
 	if ( token == INTEGER ) {
 
 		// Here we have to give the Integer value
-		// the the *F_Place value to be returned:
+		// to the *F_Place value to be returned:
 
 		*F_Place = malloc(sizeof(char)*30);
 		strcpy(*F_Place, currentLexeme);
@@ -1000,7 +984,7 @@ void factor(char **F_Place) {
 		char *E_Place;
 		E_Place = malloc(sizeof(char)*30);
 
-		expression(&E_Place);;
+		expression(&E_Place);
 
 		getNextToken();
 
@@ -1016,7 +1000,6 @@ void factor(char **F_Place) {
 		if ( peekToken == parenthleft ) {
 
 			// Case: ID <IDTAIL>
-
 			char tempLexeme[30];
 			strcpy(tempLexeme, currentLexeme);
 
@@ -1070,8 +1053,6 @@ void relational_oper(char relational_operator[10]) {
 
 	} else if ( token == morethan ) {
 
-		printf("I'm in here!\n");
-
 		strcpy(relational_operator, ">");
 
 	} else if ( token == lessthan ) {
@@ -1093,7 +1074,6 @@ void relational_oper(char relational_operator[10]) {
 	} else {
 		error("Relational operator (more-than/less-than etc.) needed.");
 	}
-
 }
 
 void add_oper() {
@@ -1105,7 +1085,6 @@ void add_oper() {
 	if ( token != plus && token != minus ) {
 		error("Addition or Subtraction operator needed.");
 	}
-
 }
 
 void mul_oper() {
@@ -1115,9 +1094,7 @@ void mul_oper() {
 	getNextToken();
 
 	if ( token != multipl && token != divide ) {
-
 		error("Multiplication or Division operator needed.");
-
 	}
 }
 
@@ -1126,9 +1103,7 @@ void optionalSign() {
 	printf("Syntax Debug: Inside optionalSign.\n\n");
 
 	if ( peekToken == plus || peekToken == minus ) {
-
 		add_oper();
-
 	}
 }
 
@@ -1138,5 +1113,4 @@ void getNextToken() {
 
 	// For debugging:
 	printf("Got next token: %d (and peeked: %d)\n\n", token, peekToken);
-
 }
