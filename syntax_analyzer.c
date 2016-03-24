@@ -171,7 +171,6 @@ void elsepart(){
 		brack_or_stat();
 
 	}
-
 }
 
 void boolFactor(label_node **R_True, label_node **R_False) {
@@ -496,6 +495,8 @@ void statement() {
 	// Assignment-Stat:
 	if ( peekToken == VARIABLE ) {
 
+		printf("Debug: Inside 'assignment' statement.\n\n");
+
 		// Consume "VARIABLE":
 		getNextToken();
 
@@ -520,6 +521,8 @@ void statement() {
 	// If-Stat:
 	} else if ( peekToken == if_a ) {
 
+		printf("Debug: Inside 'if...else' statement.\n\n");
+
 		// Consume "if_a":
 		getNextToken();
 
@@ -539,23 +542,25 @@ void statement() {
 			}
 		}
 
-		// {P1}
+		// {P1}:
 		backpatch(B_True, nextquad());
 
 		brack_or_stat();
 
-		// {P2}
+		// {P2}:
 		label_node *ifList = makelist(nextquad());
 		genquad("jump","_","_","_");
 		backpatch(B_False, nextquad());
 
 		elsepart();
 
-		// {P3}
+		// {P3}:
 		backpatch(ifList, nextquad());
 
 	// While-Stat:
 	} else if ( peekToken == while_a ) {
+
+		printf("Debug: Inside 'while' statement.\n\n");
 
 		// Consume "while_a":
 		getNextToken();
@@ -572,26 +577,29 @@ void statement() {
 
 			condition(&B_True, &B_False);
 
-			// {P2}:
-			backpatch(B_True, nextquad());
-
 			getNextToken();
 
 			if ( token != parenthright ) {
 				error("Closing parenthesis needed in 'while' condition.");
 			}
 
+			// {P2}:
+			backpatch(B_True, nextquad());
+
 			brack_or_stat();
 
-			char While_Quad[30];
-			sprintf(While_Quad, "%d", B_Quad);
+			// Turn the (int)B_Quad to a character string:
+			char B_Quad_as_String[30];
+			sprintf(B_Quad_as_String, "%d", B_Quad);
 
-			genquad("jump", "_", "_", While_Quad);
+			genquad("jump", "_", "_", B_Quad_as_String);
 			backpatch(B_False, nextquad());
 		}
 
 	// Do-While-Stat:
 	} else if ( peekToken == do_a ) {
+
+		printf("Debug: Inside 'do...while' statement.\n\n");
 
 		// Consume "do_a":
 		getNextToken();
@@ -636,12 +644,21 @@ void statement() {
 	// For-Stat:
 	} else if ( peekToken == for_a ) {
 
+		printf("Debug: Inside 'for' statement.\n\n");
+
 		// Consume "for_a":
 		getNextToken();
 
-		int For_Quad = nextquad();
-
 		getNextToken();
+
+		label_node *B_True;
+		label_node *B_False;
+
+		char *w;
+
+		char *E1_Place;
+		char *E2_Place;
+		char *E3_Place;
 
 		if ( token == VARIABLE ) {
 
@@ -649,22 +666,26 @@ void statement() {
 
 			if ( token == assign ) {
 				
-				char *E_Place = malloc(sizeof(char)*30);
-				expression(&E_Place);;
+				E1_Place = malloc(sizeof(char)*30);
+				expression(&E1_Place);
+
+				w = newtemp();
+				genquad(":=", E1_Place, "_", w);
 
 				getNextToken();
 
 				if ( token == to_a ) {
 
-					expression(&E_Place);;
+					E2_Place = malloc(sizeof(char)*30);
+					expression(&E2_Place);
 					
 					if ( peekToken == step_a ) {
 
 						// Consume "step_a":
 						getNextToken();
 
-						expression(&E_Place);;
-
+						E3_Place = malloc(sizeof(char)*30);
+						expression(&E3_Place);
 					}
 
 				} else {
@@ -679,8 +700,32 @@ void statement() {
 			error("Iterator variable (called 'id' in grammar) needed in 'for-loop'");
 		}
 
+		int For_Quad = nextquad();
+
+		char temp_next_quad_as_string[30];
+		sprintf(temp_next_quad_as_string, "%d", nextquad()+20);
+		
+		genquad("<", w, E2_Place, temp_next_quad_as_string);
+
+		B_False = makelist(nextquad());
+		genquad("jump", "_", "_", "_");
+
+		genquad("+", w, E3_Place, w);
+
+		int statement_to_be_executed = nextquad();
+
+		brack_or_stat();
+
+		char For_Quad_as_String[30];
+		sprintf(For_Quad_as_String, "%d", For_Quad);
+		genquad("jump", "_", "_", For_Quad_as_String);
+
+		backpatch(B_False, nextquad());
+
 	// Call-Stat:
 	} else if ( peekToken == call_a ) {
+
+		printf("Debug: Inside 'call' statement.\n\n");
 
 		// Consume "VARIABLE":
 		getNextToken();
@@ -700,6 +745,8 @@ void statement() {
 
 	// Return-Stat:
 	} else if ( peekToken == return_a ) {
+
+		printf("Debug: Inside 'return' statement.\n\n");
 
 		// Consume "VARIABLE":
 		getNextToken();
@@ -725,6 +772,8 @@ void statement() {
 
 	// Print-Stat:
 	} else if ( peekToken == print_a ) {
+
+		printf("Debug: Inside 'print' statement.\n\n");
 
 		// Consume "VARIABLE":
 		getNextToken();
