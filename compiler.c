@@ -39,9 +39,12 @@ int main(int argc, char *argv[]) {
 	}
 
 	// Then, continue to the Syntax Analyzer:
-		program();
+	program();
 
 	// Finally, create (and populate) the Text file containing the Quads List:
 	printQuadsToFile(quad_list_head);
+
+	// And, also, create the C language equivalent:
+	exportQuadsToCFile(quad_list_head);
 
 }

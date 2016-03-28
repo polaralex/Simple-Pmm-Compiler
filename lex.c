@@ -141,7 +141,6 @@ int lex(){
 
 	// The code (probably) never reaches this point:
 	return(0);
-
 }
 
 int stateAnalyzer (FILE *input, char *output, char *encodedOutput) {

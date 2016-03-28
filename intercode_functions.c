@@ -172,7 +172,7 @@ void backpatch(struct label_list *list, int label_number) {
 
 void printQuadsToFile(quartet_node *quadsList) {
 
-	FILE *quadsOutputFile = fopen("quads_output.txt", "w");
+	FILE *quadsOutputFile = fopen("quads_output.int", "w");
 
 	if (quadsOutputFile == NULL) {
     	printf("Error opening file!\n");
@@ -213,3 +213,96 @@ void printQuadsToFile(quartet_node *quadsList) {
 	fprintf(quadsOutputFile, "\n");
 	fclose(quadsOutputFile);
 }
+
+void exportQuadsToCFile(quartet_node *quadsList) {
+
+	FILE *cOutputFile = fopen("quads_output.c", "w");
+
+	if (cOutputFile == NULL) {
+    	printf("Error opening file!\n");
+    	exit(1);
+	}
+
+	// First, print the basic structure of the C file:
+	fprintf(cOutputFile, "\n");
+	fprintf(cOutputFile, "int main() {\n");
+
+	// Then, we have to add all the lexemes used
+	//as integer variables:
+	fprintf(cOutputFile, "\nint ");
+
+		// Here ADD A LOOP that adds all the used lexemes.
+
+	fprintf(cOutputFile, ";");
+	fprintf(cOutputFile, "\n\n");
+
+	while (quadsList != NULL && failsafe < 1000) {
+
+		// Temporary holders for the output String values:
+		int labelNumber;
+		char label[30];
+		char op[30];
+		char arg1[30];
+		char arg2[30];
+		char result[30];
+
+		// Fill the holders using data from the quads struct:
+		labelNumber = quadsList->quartet.label;
+		sprintf(label, "%d", quadsList->quartet.label);
+		strcpy(op, quadsList->quartet.operator);
+		strcpy(arg1, quadsList->quartet.argument1);
+		strcpy(arg2, quadsList->quartet.argument2);
+		strcpy(result, quadsList->quartet.result);
+
+		// 1. Add the label:
+		fprintf(cOutputFile, "\tL_%d: ", labelNumber);
+
+		// 2. 'Translate' the quad to C format.
+
+		// 2.1 -> Basic Operations:
+		if(strcmp(op,"+") == 0 || strcmp(op,"-") == 0 || strcmp(op,"*") == 0 || strcmp(op,"/") == 0) {
+
+			fprintf(cOutputFile, "%s = %s %s %s; ", result, arg1, op, arg2);
+		}
+
+		// 2.2 -> Assignment:
+		if(strcmp(op,":=") == 0 ) {
+
+			fprintf(cOutputFile, "%s = %s; ", result, arg1);
+		}
+
+		// 2.3 -> Relational Operation (except equals):
+		if(strcmp(op,"<") == 0 || strcmp(op,">") == 0 || strcmp(op,"<=") == 0 || strcmp(op,">=") == 0) {
+
+			fprintf(cOutputFile, "if (%s %s %s) goto %s; ", arg1, op, arg2, result);
+		}
+
+		// 2.3 -> ...equals:
+		if( strcmp(op,"=") == 0 ) {
+
+			fprintf(cOutputFile, "if (%s == %s) goto %s; ", arg1, arg2, result);
+		}
+
+		// 2.4 -> Jump:
+		if( strcmp(op,"jump") == 0 ) {
+
+			fprintf(cOutputFile, "goto L_%s; ", result);
+		}
+
+		// 2.5 -> Add the original quad as a comment:
+		fprintf(cOutputFile, "// (%s,%s,%s,%s)", op, arg1, arg2, result);
+
+		fprintf(cOutputFile, "\n");
+
+		quadsList = quadsList->next;
+
+		// THIS IS A FAILSAFE MECHANISM TO PREVENT NEVERENDING LOOP OUTPUTS:
+		failsafe++;
+	}
+
+	// Finally: Add a semicolon for the end of line and close the program brackets:
+	fprintf(cOutputFile, "\n}\n");
+
+	fclose(cOutputFile);
+}
+
