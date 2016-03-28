@@ -317,13 +317,16 @@ void func() {
 
 	getNextToken();
 
+	char procedure_name[30];
+
 	if (token == procedure_a) {
 
 		getNextToken();
 
 		if (token == VARIABLE) {
 
-			funcBody(currentLexeme);
+			strcpy(procedure_name, currentLexeme);
+			funcBody(procedure_name);
 		}
 
 	} else if (token == function_a) {
@@ -332,7 +335,8 @@ void func() {
 
 		if (token == VARIABLE) {
 
-			funcBody(currentLexeme);
+			strcpy(procedure_name, currentLexeme);
+			funcBody(procedure_name);
 		}
 
 	} else {
@@ -346,7 +350,6 @@ void funcBody(char procedure_name[30]) {
 
 	formalPars();
 	block(procedure_name, 0);
-
 }
 
 void formalPars() {
@@ -621,7 +624,6 @@ void statement() {
 			} else {
 
 				error("Opening parenthesis needed for 'do-while' condition, after 'while'.");
-
 			}
 		}
 
@@ -689,7 +691,7 @@ void statement() {
 		char temp_next_quad_as_string[30];
 		sprintf(temp_next_quad_as_string, "%d", nextquad()+20);
 		
-		genquad("<", w, E2_Place, temp_next_quad_as_string);
+		genquad("<=", w, E2_Place, temp_next_quad_as_string);
 
 		B_False = makelist(nextquad());
 		genquad("jump", "_", "_", "_");
