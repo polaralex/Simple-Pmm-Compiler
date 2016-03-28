@@ -26,6 +26,13 @@ typedef struct lexeme_list {
 
 static lexeme *lexeme_head;
 
+typedef struct temporary_variables_list {
+	char variable[30];
+	struct temporary_variables_list *next;
+} temp_list;
+
+static temp_list *temp_variables_head;
+
 // Global parsing output character arrays:
 static char output[BIG_CHARACTER_ARRAY_LENGTH];
 static char encodedOutput[BIG_CHARACTER_ARRAY_LENGTH];

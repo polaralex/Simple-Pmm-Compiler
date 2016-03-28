@@ -28,6 +28,7 @@ typedef struct label_list {
 int nextquad();
 void genquad(char operator[30], char argument1[30], char argument2[30], char result[30]);
 char * newtemp();
+void addToTempVariablesList(char *variable);
 
 // List pointers:
 quartet_node *quad_list_head; //This is the genquad list.
@@ -88,6 +89,13 @@ char * newtemp() {
 	sprintf( temp, "T_%d", temp_number);
 
 	temp_number = temp_number + 1;
+
+	// This is used for the C-equivalent
+	// intermediate code production:
+	printf("In here!!!\n\n");
+	char temp_copy[30];
+	sprintf( temp_copy, "T_%d", temp_number);
+	addToTempVariablesList(temp_copy);
 
 	return temp;
 }
@@ -170,7 +178,37 @@ void backpatch(struct label_list *list, int label_number) {
 	}
 }
 
+void addToTempVariablesList(char *variable) {
+
+	// Generate a Quad and add it in the Quad list:
+	temp_list *current_temp = temp_variables_head;
+
+	// Create the new node to be inserted in our list:
+	temp_list *new_node = malloc(sizeof(temp_list));
+	strcpy(new_node->variable, variable);
+	new_node->next = NULL;
+
+	// If the list is empty, make this new node the head:
+	if ( temp_variables_head == NULL ) {
+
+		temp_variables_head = new_node;
+
+	} else {
+
+		while( current_temp->next != NULL ) {
+
+			current_temp = current_temp->next;
+		}
+
+		// We reach this point, when we are at the last node:
+		current_temp->next = new_node;
+		current_temp->next->next = NULL;
+	}
+}
+
 void printQuadsToFile(char nameoffile[30], quartet_node *quadsList) {
+
+	printf("-- Starting Export of Quads to .int file --\n\n");
 
 	char filename[30];
 	strcpy(filename, nameoffile);
@@ -219,6 +257,8 @@ void printQuadsToFile(char nameoffile[30], quartet_node *quadsList) {
 
 void exportQuadsToCFile(char nameoffile[30], quartet_node *quadsList) {
 
+	printf("-- Starting Export of Quads to C-equivalent file --\n\n");
+
 	char filename[30];
 	strcpy(filename, nameoffile);
 	strcat(filename, ".c");
@@ -230,8 +270,7 @@ void exportQuadsToCFile(char nameoffile[30], quartet_node *quadsList) {
 	}
 
 	// First, print the basic structure of the C file:
-	fprintf(cOutputFile, "\n");
-	fprintf(cOutputFile, "int main() {\n");
+	fprintf(cOutputFile, "\nint main() {\n");
 
 	// Then, we have to add all the lexemes used
 	//as integer variables:
@@ -242,15 +281,11 @@ void exportQuadsToCFile(char nameoffile[30], quartet_node *quadsList) {
 
 		lexeme *lexemes = lexeme_head;
 
-		printf("before\n\n");
-
 		// This is used to decide if a comma should be added
 		// after each variable fprintf:
 		int commaFlag = 0;
 
 		while ( lexemes != NULL ) {
-
-			printf("inside lexeme loop\n\n");
 
 			if ( lexemes->isItUsed == 1 ) {
 
@@ -260,7 +295,6 @@ void exportQuadsToCFile(char nameoffile[30], quartet_node *quadsList) {
 					fprintf(cOutputFile, " ");
 				}
 
-				printf("Lexeme %d - isItUsed=%d\n", i, lexemes->isItUsed);
 				fprintf(cOutputFile, "%s", lexemes->word);
 
 				commaFlag = 1;
@@ -270,8 +304,31 @@ void exportQuadsToCFile(char nameoffile[30], quartet_node *quadsList) {
 			i++;
 		}
 
-	fprintf(cOutputFile, ";");
-	fprintf(cOutputFile, "\n\n");
+	fprintf(cOutputFile, ";\n");
+
+	// And here we add the 'T_#' type variables that have been created
+	// during intermediate code production:
+	fprintf(cOutputFile, "int ");
+
+		// Here, we add all the used lexemes as variables:
+		i=0;
+
+		temp_list *current_tmp = temp_variables_head;
+
+		while ( current_tmp != NULL ) {
+
+				fprintf(cOutputFile, "%s", current_tmp->variable);
+
+				if( current_tmp->next == NULL ) {
+					fprintf(cOutputFile, "");
+				} else {
+					fprintf(cOutputFile, ", ");
+				}
+
+		current_tmp = current_tmp->next;
+	}
+
+	fprintf(cOutputFile, ";\n\n");
 
 	while (quadsList != NULL && failsafe < 1000) {
 
@@ -292,7 +349,7 @@ void exportQuadsToCFile(char nameoffile[30], quartet_node *quadsList) {
 		strcpy(result, quadsList->quartet.result);
 
 		// 1. Add the label:
-		fprintf(cOutputFile, "\tL_%d: ", labelNumber);
+		fprintf(cOutputFile, "L_%d: ", labelNumber);
 
 		// 2. 'Translate' the quad to C format.
 
@@ -342,4 +399,3 @@ void exportQuadsToCFile(char nameoffile[30], quartet_node *quadsList) {
 
 	fclose(cOutputFile);
 }
-

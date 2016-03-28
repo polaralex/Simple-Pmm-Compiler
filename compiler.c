@@ -55,6 +55,8 @@ int main(int argc, char *argv[]) {
 	// And, also, create the C language equivalent:
 	exportQuadsToCFile(filenameWithoutExtension, quad_list_head);
 
+	printf("[DONE] Compiling is Complete.\n[DONE] Check the Exported files for the Produced Intermediate Code :)\n\n");
+
 }
 
 void getFilenameWithoutExtension(char nameoffile[30], char * nameWithoutExtension) {
