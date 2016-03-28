@@ -170,9 +170,12 @@ void backpatch(struct label_list *list, int label_number) {
 	}
 }
 
-void printQuadsToFile(quartet_node *quadsList) {
+void printQuadsToFile(char nameoffile[30], quartet_node *quadsList) {
 
-	FILE *quadsOutputFile = fopen("quads_output.int", "w");
+	char filename[30];
+	strcpy(filename, nameoffile);
+	strcat(filename, ".int");
+	FILE *quadsOutputFile = fopen(filename, "w");
 
 	if (quadsOutputFile == NULL) {
     	printf("Error opening file!\n");
@@ -214,9 +217,12 @@ void printQuadsToFile(quartet_node *quadsList) {
 	fclose(quadsOutputFile);
 }
 
-void exportQuadsToCFile(quartet_node *quadsList) {
+void exportQuadsToCFile(char nameoffile[30], quartet_node *quadsList) {
 
-	FILE *cOutputFile = fopen("quads_output.c", "w");
+	char filename[30];
+	strcpy(filename, nameoffile);
+	strcat(filename, ".c");
+	FILE *cOutputFile = fopen(filename, "w");
 
 	if (cOutputFile == NULL) {
     	printf("Error opening file!\n");
@@ -231,7 +237,38 @@ void exportQuadsToCFile(quartet_node *quadsList) {
 	//as integer variables:
 	fprintf(cOutputFile, "\nint ");
 
-		// Here ADD A LOOP that adds all the used lexemes.
+		// Here, we add all the used lexemes as variables:
+		int i=0;
+
+		lexeme *lexemes = lexeme_head;
+
+		printf("before\n\n");
+
+		// This is used to decide if a comma should be added
+		// after each variable fprintf:
+		int commaFlag = 0;
+
+		while ( lexemes != NULL ) {
+
+			printf("inside lexeme loop\n\n");
+
+			if ( lexemes->isItUsed == 1 ) {
+
+				if( commaFlag == 1 ) {
+					fprintf(cOutputFile, ", ");
+				} else {
+					fprintf(cOutputFile, " ");
+				}
+
+				printf("Lexeme %d - isItUsed=%d\n", i, lexemes->isItUsed);
+				fprintf(cOutputFile, "%s", lexemes->word);
+
+				commaFlag = 1;
+			}
+
+			lexemes = lexemes->next;
+			i++;
+		}
 
 	fprintf(cOutputFile, ";");
 	fprintf(cOutputFile, "\n\n");

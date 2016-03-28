@@ -15,6 +15,7 @@ void checkNumberAndAddToOutput();
 void checkCharacterForComplexAndAddIt();
 void addLexeme(char input_characters[30]);
 char * getLexeme(int position);
+void static flagLexemeAsUsed();
 
 // Variables (global for helping with code-cleanup):
 int nextToken;
@@ -603,6 +604,7 @@ void addLexeme(char input_characters[30]) {
 
 	// Add the data to the new lexeme struct:
 	strcpy(new_lexeme->word, input_characters);
+	new_lexeme->isItUsed = 0;
 	new_lexeme->next = NULL;
 
 	// If the list is empty, make this new node the head:
@@ -640,4 +642,23 @@ char * getLexeme(int position) {
 	}
 
 	return(" ");
+}
+
+// This function sets a flag inside the Lexeme struct, every time it is used/saved
+// as a Varibale or Function name for use in Intermediate Code Generation:
+void flagLexemeAsUsed(){
+
+	int i=0;
+
+	lexeme *lexemePointer = lexeme_head;
+
+	while ( lexemePointer != NULL ) {
+
+		lexemePointer = lexemePointer->next;
+		i++;
+
+		if ( i == lexeme_parsing_counter-1 ) {
+			lexemePointer->isItUsed = 1;
+		}
+	}
 }

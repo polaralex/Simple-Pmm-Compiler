@@ -7,8 +7,12 @@
 #include "lex.c"
 #include "syntax_analyzer.c"
 
+void getFilenameWithoutExtension(char nameoffile[30], char * filenameWithoutExtension);
+
 int main(int argc, char *argv[]) {
 
+	char nameoffile[30];
+	char filenameWithoutExtension[30];
 	output[0] = '\0';
 	encodedOutput[0] = '\0';
 
@@ -22,6 +26,10 @@ int main(int argc, char *argv[]) {
 		printf("<!> Error: There was no input file.\nPlease give a text input to be processed as an argument\n\n");
 		return (0);
 	}
+
+	// Used to give the filename to the file producing methods:
+	strcpy(nameoffile, argv[1]);
+	getFilenameWithoutExtension(nameoffile, filenameWithoutExtension);
 
 	// Open the file stream into the file pointer:
 	input = fopen(argv[1], "r");
@@ -42,9 +50,21 @@ int main(int argc, char *argv[]) {
 	program();
 
 	// Finally, create (and populate) the Text file containing the Quads List:
-	printQuadsToFile(quad_list_head);
+	printQuadsToFile(filenameWithoutExtension, quad_list_head);
 
 	// And, also, create the C language equivalent:
-	exportQuadsToCFile(quad_list_head);
+	exportQuadsToCFile(filenameWithoutExtension, quad_list_head);
 
 }
+
+void getFilenameWithoutExtension(char nameoffile[30], char * nameWithoutExtension) {
+
+ 	int i = 0;
+ 	nameWithoutExtension[0] = '\0';
+
+ 	while( nameoffile[i] != '\0' && nameoffile[i] != '.' && i<30){
+ 		nameWithoutExtension[i] = nameoffile[i];
+ 		nameWithoutExtension[i+1] = '\0';
+ 		i++;
+ 	}
+ }

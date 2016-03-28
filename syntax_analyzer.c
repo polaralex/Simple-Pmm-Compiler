@@ -57,6 +57,7 @@ void program() {
 
 			char function_name[30];
 			strcpy(function_name, currentLexeme);
+			
 
 			block(function_name, 1);
 
@@ -131,6 +132,8 @@ void varlist() {
 		// Consume the 'var':
 		getNextToken();
 
+		flagLexemeAsUsed();
+
 		while ( peekToken == comma || peekToken == VARIABLE ) {
 
 			if ( peekToken == comma ) {
@@ -145,6 +148,8 @@ void varlist() {
 				} else {
 
 					getNextToken();
+
+					flagLexemeAsUsed();
 
 				}
 
@@ -326,6 +331,8 @@ void func() {
 		if (token == VARIABLE) {
 
 			strcpy(procedure_name, currentLexeme);
+			
+
 			funcBody(procedure_name);
 		}
 
@@ -336,6 +343,8 @@ void func() {
 		if (token == VARIABLE) {
 
 			strcpy(procedure_name, currentLexeme);
+			
+
 			funcBody(procedure_name);
 		}
 
@@ -491,6 +500,7 @@ void statement() {
 
 		char assignment_target[30];
 		strcpy(assignment_target, currentLexeme);
+		
 
 		getNextToken();
 
@@ -723,6 +733,7 @@ void statement() {
 			// Hold the function name, before it's consumed:
 			char function_name[30];
 			strcpy(function_name, currentLexeme);
+			
 
 			actualpars();
 
@@ -854,6 +865,7 @@ void actualparitem() {
 		}
 
 		genquad("par", currentLexeme, "REF", "_");
+		
 
 	} else {
 		error("Missing 'in' or 'inout' expression after 'call' statement.");
@@ -1004,6 +1016,7 @@ void factor(char **F_Place) {
 			// Case: ID <IDTAIL>
 			char tempLexeme[30];
 			strcpy(tempLexeme, currentLexeme);
+			
 
 			char *Id_Place = malloc(sizeof(char)*30);
 
@@ -1020,6 +1033,7 @@ void factor(char **F_Place) {
 
 			*F_Place = malloc(sizeof(char)*30);
 			strcpy(*F_Place, currentLexeme);
+			
 		}
 	}
 }

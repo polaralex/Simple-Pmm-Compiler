@@ -21,6 +21,7 @@ static int lexeme_counter = 0;
 typedef struct lexeme_list {
 	char word[30];
 	struct lexeme_list *next;
+	int isItUsed;
 } lexeme;
 
 static lexeme *lexeme_head;
