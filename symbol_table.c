@@ -181,16 +181,16 @@ void printSymbolTable() {
 		while (currentEntity != NULL) {
 
 			if(currentEntity->type == VARIABLE_E) {
-				printf("Variable: (%s, %d) \n", currentEntity->name, currentEntity->offset);
+				printf("<Variable %s, %d> \n", currentEntity->name, currentEntity->offset);
 			} else if (currentEntity->type == FUNCTION) {
-				printf("Function: (%s) \n", currentEntity->function.name);
+				printf("<Function: %s> \n", currentEntity->function.name);
 			} else if (currentEntity->type == CONSTANT) {
-				printf("Constant: (%s, %d) - Value:(%s) \n", currentEntity->name, currentEntity->offset, currentEntity->value);
+				printf("<Constant: %s, %d, Value:%s> \n", currentEntity->name, currentEntity->offset, currentEntity->value);
 			} else if (currentEntity->type == PARAMETER) {
-				printf("Parameter: (%s, %d) \n", currentEntity->name, currentEntity->offset);
+				printf("<Parameter: %s, %d> \n", currentEntity->name, currentEntity->offset);
 			} else {
 				// Case: Temporary Variable
-				printf("Temporary Variable: (%s, %d) \n", currentEntity->name, currentEntity->offset);
+				printf("<Temporary Variable: %s, %d> \n", currentEntity->name, currentEntity->offset);
 			}
 		}
 

@@ -77,13 +77,13 @@ void block(char function_name[30], int isItMainBlock) {
 
 	if (token == curlbrackleft) {
 
-		genquad("begin_block", function_name, "_", "_");
-
 		declarations();
 
 		while ( peekToken == procedure_a || peekToken == function_a ) {
 			subprograms();
 		}
+
+		genquad("begin_block", function_name, "_", "_");
 
 		sequence();
 
