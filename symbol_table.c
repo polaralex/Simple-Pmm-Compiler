@@ -1,11 +1,21 @@
+#include "defines.h"
 
-#define VARIABLE 1
+#define VARIABLE_E 1
 #define FUNCTION 2
 #define CONSTANT 3
 #define PARAMETER 4
 #define TEMPORARY_VARIABLE 5
 
 // Data Structs:
+
+// Γιατί χρειάζεται αυτό;
+struct functionType {
+	int startQuad;
+	int type;
+	char name[30];
+	struct recordArgument *argumentList;
+};
+
 struct entity {
 	char name[30];
 	// Variable (and "offset" used for Parameter):
@@ -21,28 +31,23 @@ struct entity {
 	// Parameter / tempParameter:
 	int parMode;
 
+	int nestingLevel;
 	struct entity *next;
-}
+};
 
 struct scope {
 	struct entity *entityList;
+	char name[30];
 	int nestingLevel;
 	int framelength; // ΤΣΕΚΑΡΕ ΑΥΤΟ. ΓΙΑΤΙ ΕΙΝΑΙ ΕΔΩ;
 	struct scope *next;
-}
+};
 
 struct recordArgument {
 	int parMode;
 	int type;
-	stuct recordArgument *next;
-}
-
-// Γιατί χρειάζεται αυτό;
-struct functionType {
-	int startQuad;
-	int type;
-	stuct recordArgument *argumentList;
-}
+	struct recordArgument *next;
+};
 
 // List Global Variables:
 struct scope *scopeHead = NULL;
@@ -65,7 +70,7 @@ void addScope(char name[30]) {
 		scopeHead = new_scope;
 		new_scope->nestingLevel=1;
 		new_scope->framelength=12;
-		new_scope->next = NULL
+		new_scope->next = NULL;
 	} else {
 		new_scope->nestingLevel= scopeHead->nestingLevel+1;
 		new_scope->framelength=12;
@@ -84,7 +89,7 @@ void deleteScope() {
 	}
 }
 
-void addEntity(char name[30], int type, int mode, int value){
+void addEntity(char name[30], int type, int mode, char value[30]) {
 
 	struct entity *new_entity;
 	struct entity *current;
@@ -101,9 +106,9 @@ void addEntity(char name[30], int type, int mode, int value){
 	}
 
 	new_entity->type = type;
-	new_entity->mode = mode;
-	new_entity-> value = value;
-	new_entity-> nestingLevel = scopeHead->nestingLevel;
+	new_entity->parMode = mode;
+	strcpy(new_entity->value, value);
+	new_entity->nestingLevel = scopeHead->nestingLevel;
 	new_entity->next = NULL;
 
 	previous = NULL;
@@ -168,19 +173,19 @@ void printSymbolTable() {
 
 	while(currentScope != NULL) {
 		
-		printf("Nesting Level: #%s\n", currentScope->nestingLevel);
+		printf("Nesting Level: #%d\n", currentScope->nestingLevel);
 		printf("Scope Name: %s\n\n", currentScope->name);
 
 		currentEntity = currentScope->entityList;
 
 		while (currentEntity != NULL) {
 
-			if(currentEntity->type == VARIABLE) {
+			if(currentEntity->type == VARIABLE_E) {
 				printf("Variable: (%s, %d) \n", currentEntity->name, currentEntity->offset);
 			} else if (currentEntity->type == FUNCTION) {
 				printf("Function: (%s) \n", currentEntity->function.name);
 			} else if (currentEntity->type == CONSTANT) {
-				printf("Constant: (%s, %d) - Value:(%d) \n", currentEntity->name, currentEntity->offset, currentEntity->value);
+				printf("Constant: (%s, %d) - Value:(%s) \n", currentEntity->name, currentEntity->offset, currentEntity->value);
 			} else if (currentEntity->type == PARAMETER) {
 				printf("Parameter: (%s, %d) \n", currentEntity->name, currentEntity->offset);
 			} else {
