@@ -57,7 +57,6 @@ void program() {
 
 			char function_name[30];
 			strcpy(function_name, currentLexeme);
-			
 
 			block(function_name, 1);
 

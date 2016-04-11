@@ -1,3 +1,6 @@
+// ALEXANDROS EMEXEZIDIS 1329
+// VERRA GATSELOU 2033
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
