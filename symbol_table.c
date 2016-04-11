@@ -6,33 +6,44 @@
 #define PARAMETER 4
 #define TEMPORARY_VARIABLE 5
 
-// Data Structs:
+#define PASS_BY_VALUE 6
+#define PASS_BY_REFERENCE 7
 
-// Γιατί χρειάζεται αυτό;
+void addScope(char name[30]);
+void deleteScope();
+void addEntity(char name[30], int type, int mode, char value[30]);
+struct entity *lookupEntity(char name[30]);
+void printSymbolTable();
+
+// Data Structs:
 struct functionType {
+	char name[30];
 	int startQuad;
 	int type;
-	char name[30];
 	struct recordArgument *argumentList;
 };
 
 struct entity {
+
 	char name[30];
+	int nestingLevel;
+	struct entity *next;
+
 	// Variable (and "offset" used for Parameter):
 	int type;
 	int offset;
+
 	// Function:
 	struct functionType function;
 	int startQuad;
 	struct argument *argumentList;
 	int framelength;
+
 	// Constant:
 	char value[30];
+
 	// Parameter / tempParameter:
 	int parMode;
-
-	int nestingLevel;
-	struct entity *next;
 };
 
 struct scope {
@@ -54,32 +65,33 @@ struct scope *scopeHead = NULL;
 struct recordArgument *argumentHead = NULL;
 
 // Functions:
-
 void addScope(char name[30]) {
 
-	// This function pushes a new_scope to the top of the scope stack:
+	printf("Debug: Inside addScope.\n\n");
 
+	// This function pushes a new_scope to the top of the scope stack:
 	struct scope *new_scope;
 	new_scope = malloc(sizeof(struct scope));
 
 	strcpy(new_scope->name, name);
-
 	new_scope->entityList = NULL;
 
 	if (scopeHead == NULL) {
 		scopeHead = new_scope;
-		new_scope->nestingLevel=1;
-		new_scope->framelength=12;
+		new_scope->nestingLevel = 1;
+		new_scope->framelength = 12;
 		new_scope->next = NULL;
 	} else {
-		new_scope->nestingLevel= scopeHead->nestingLevel+1;
-		new_scope->framelength=12;
+		new_scope->nestingLevel = scopeHead->nestingLevel + 1;
+		new_scope->framelength = 12;
 		new_scope->next = scopeHead;
 		scopeHead = new_scope;
 	}
 }
 
 void deleteScope() {
+
+	printf("Debug: Inside deleteScope.\n\n");
 
 	if (scopeHead == NULL) {
 		printf("The scope stack is empty.\n\n");
@@ -91,11 +103,13 @@ void deleteScope() {
 
 void addEntity(char name[30], int type, int mode, char value[30]) {
 
+	printf("Debug: Inside addEntity.\n\n");
+
 	struct entity *new_entity;
 	struct entity *current;
 	struct entity *previous;
 
-	int temp_offset = -1;
+	int last_offset = -1;
 
 	new_entity = malloc(sizeof(struct entity));
 
@@ -114,27 +128,34 @@ void addEntity(char name[30], int type, int mode, char value[30]) {
 	previous = NULL;
 	current = scopeHead->entityList;
 
+	// TODO: Check this:
 	while (current != NULL){
 		previous = current;
 
 		if(current->type != FUNCTION) {
-			temp_offset = current->offset;
+			last_offset = current->offset;
 		}
+
 		current = current->next;
 	}
 
 	if (previous == NULL) {
+
 		scopeHead->entityList = new_entity;
 		new_entity->offset = 12;
 		scopeHead->framelength = 16;
+
 	} else {
+
 		previous->next = new_entity;
-		new_entity->offset = temp_offset + 4;
+		new_entity->offset = last_offset + 4;
 		scopeHead->framelength = new_entity->offset + 4;
 	}
 }
 
 struct entity *lookupEntity(char name[30]) {
+
+	printf("Debug: Inside lookupEntity.\n\n");
 
 	struct entity *currentEntity;
 	struct scope *currentScope;
@@ -159,7 +180,8 @@ struct entity *lookupEntity(char name[30]) {
 		printf("The requested Entity (%s) was not found.\n\n", name);
 	}
 
-	return(NULL);
+	// Returns ZERO if the Entity is not found:
+	return(0);
 }
 
 void printSymbolTable() {
@@ -169,11 +191,11 @@ void printSymbolTable() {
 
 	currentScope = scopeHead;
 
-	printf("-- Symbol Table Printout --\n\n");
+	printf("-- Symbol Table Printout --\n");
 
 	while(currentScope != NULL) {
 		
-		printf("Nesting Level: #%d\n", currentScope->nestingLevel);
+		printf("\nNesting Level: #%d\n", currentScope->nestingLevel);
 		printf("Scope Name: %s\n\n", currentScope->name);
 
 		currentEntity = currentScope->entityList;
@@ -192,10 +214,12 @@ void printSymbolTable() {
 				// Case: Temporary Variable
 				printf("<Temporary Variable: %s, %d> \n", currentEntity->name, currentEntity->offset);
 			}
+
+			currentEntity = currentEntity->next;
 		}
 
-		printf("\n\n");
 		currentScope = currentScope->next;
-
 	}
+
+	printf("\n-- End of Symbol Table --\n\n");
 }

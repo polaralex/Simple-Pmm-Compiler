@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include "defines.h"
 #include "intercode_functions.c"
+#include "symbol_table.c"
 
 // P-- Grammar:
 void program();
@@ -58,7 +59,13 @@ void program() {
 			char function_name[30];
 			strcpy(function_name, currentLexeme);
 
-			block(function_name, 1);
+			addScope(function_name);
+
+			block(function_name, IS_MAIN_PROGRAM);
+
+			printSymbolTable();
+
+			deleteScope();
 
 		} else {
 			error("Program name expected.");
@@ -131,6 +138,8 @@ void varlist() {
 		// Consume the 'var':
 		getNextToken();
 
+		addEntity(currentLexeme, VARIABLE_E, 0, "0");
+
 		flagLexemeAsUsed();
 
 		while ( peekToken == comma || peekToken == VARIABLE ) {
@@ -147,6 +156,8 @@ void varlist() {
 				} else {
 
 					getNextToken();
+
+					addEntity(currentLexeme, VARIABLE_E, 0, "0");
 
 					flagLexemeAsUsed();
 
@@ -283,6 +294,9 @@ void expression(char **E_place) {
 
 			// {P1}:
 			char *w = newtemp();
+
+			addEntity(w, 5, 0, "0");
+
 			genquad("+", T1_Place, T2_Place, w);
 			strcpy(T1_Place, w);
 
@@ -295,6 +309,9 @@ void expression(char **E_place) {
 
 			// {P1}:
 			char *w = newtemp();
+
+			addEntity(w, 5, 0, "0");
+
 			genquad("-", T1_Place, T2_Place, w);
 			strcpy(T1_Place, w);
 		}
@@ -330,9 +347,22 @@ void func() {
 		if (token == VARIABLE) {
 
 			strcpy(procedure_name, currentLexeme);
-			
+
+			addEntity(procedure_name, FUNCTION, 0, "0");
+
+			// TODO: CHECK THIS PART LATER
+			// (about the Function included in Entity)
+			struct entity *func_entity;
+			func_entity=lookupEntity(procedure_name);
+			// CHECK THIS LATER.
+
+			addScope(procedure_name);
 
 			funcBody(procedure_name);
+
+			printSymbolTable();
+
+			deleteScope();
 		}
 
 	} else if (token == function_a) {
@@ -342,9 +372,22 @@ void func() {
 		if (token == VARIABLE) {
 
 			strcpy(procedure_name, currentLexeme);
-			
 
+			addEntity(procedure_name, FUNCTION, 0, "0");
+
+			// TODO: CHECK THIS PART LATER
+			// (about the Function included in Entity)
+			struct entity *func_entity;
+			func_entity=lookupEntity(procedure_name);
+			// CHECK THIS LATER.
+
+			addScope(procedure_name);
+			
 			funcBody(procedure_name);
+
+			printSymbolTable();
+
+			deleteScope();
 		}
 
 	} else {
@@ -430,6 +473,8 @@ void formalParItem() {
 			error("No variable declared in 'FormalParItem");
 		}
 
+		addEntity(currentLexeme, 4, PASS_BY_VALUE, "0");
+
 	} else if ( token == inout_a ) {
 
 		getNextToken();
@@ -437,6 +482,8 @@ void formalParItem() {
 		if ( token != VARIABLE ) {
 			error("No variable declared in 'FormalParItem");
 		}
+
+		addEntity(currentLexeme, 4, PASS_BY_REFERENCE, "0");
 	}
 }
 
@@ -956,6 +1003,9 @@ void term(char **T_Place) {
 
 			// {P1}:
 			char *w = newtemp();
+
+			addEntity(w, 5, 0, "0");
+
 			genquad("x", F1_Place, F2_Place, w);
 			strcpy(F1_Place, w);
 
@@ -968,6 +1018,9 @@ void term(char **T_Place) {
 
 			// {P1}:
 			char *w = newtemp();
+
+			addEntity(w, 5, 0, "0");
+
 			genquad("/", F1_Place, F2_Place, w);
 			strcpy(F1_Place, w);
 		}
@@ -992,6 +1045,8 @@ void factor(char **F_Place) {
 		*F_Place = malloc(sizeof(char)*30);
 		strcpy(*F_Place, currentLexeme);
 
+		// TODO: Εδώ δεν θέλει addEntity??
+		
 	} else if ( token == parenthleft ) {
 
 		char *E_Place;
@@ -1016,7 +1071,6 @@ void factor(char **F_Place) {
 			char tempLexeme[30];
 			strcpy(tempLexeme, currentLexeme);
 			
-
 			char *Id_Place = malloc(sizeof(char)*30);
 
 			idtail(&Id_Place);
@@ -1032,7 +1086,6 @@ void factor(char **F_Place) {
 
 			*F_Place = malloc(sizeof(char)*30);
 			strcpy(*F_Place, currentLexeme);
-			
 		}
 	}
 }
@@ -1049,6 +1102,9 @@ void idtail(char **Id_Place) {
 		actualpars();
 
 		char *w = newtemp();
+
+		addEntity(w, 5, 0, "0");
+
 		genquad("par", w, "RET", "_");
 
 		*Id_Place = malloc(sizeof(char *)*30);
