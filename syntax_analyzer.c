@@ -350,11 +350,10 @@ void func() {
 
 			addEntity(procedure_name, FUNCTION, 0, "0");
 
-			// TODO: CHECK THIS PART LATER
-			// (about the Function included in Entity)
 			struct entity *func_entity;
 			func_entity=lookupEntity(procedure_name);
-			// CHECK THIS LATER.
+			func_entity->function.startQuad = nextquadlabel;
+			func_entity->function.type = TYPE_PROCEDURE;
 
 			addScope(procedure_name);
 
@@ -375,11 +374,10 @@ void func() {
 
 			addEntity(procedure_name, FUNCTION, 0, "0");
 
-			// TODO: CHECK THIS PART LATER
-			// (about the Function included in Entity)
 			struct entity *func_entity;
 			func_entity=lookupEntity(procedure_name);
-			// CHECK THIS LATER.
+			func_entity->function.startQuad = nextquadlabel;
+			func_entity->function.type = TYPE_FUNCTION;
 
 			addScope(procedure_name);
 			
@@ -1046,7 +1044,7 @@ void factor(char **F_Place) {
 		strcpy(*F_Place, currentLexeme);
 
 		// TODO: Εδώ δεν θέλει addEntity??
-		
+
 	} else if ( token == parenthleft ) {
 
 		char *E_Place;

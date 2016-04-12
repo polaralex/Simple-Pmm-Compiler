@@ -9,6 +9,9 @@
 #define PASS_BY_VALUE 6
 #define PASS_BY_REFERENCE 7
 
+#define TYPE_FUNCTION 8
+#define TYPE_PROCEDURE 9
+
 void addScope(char name[30]);
 void deleteScope();
 void addEntity(char name[30], int type, int mode, char value[30]);
@@ -35,9 +38,6 @@ struct entity {
 
 	// Function:
 	struct functionType function;
-	int startQuad;
-	struct argument *argumentList;
-	int framelength;
 
 	// Constant:
 	char value[30];
@@ -47,10 +47,10 @@ struct entity {
 };
 
 struct scope {
-	struct entity *entityList;
 	char name[30];
 	int nestingLevel;
-	int framelength; // ΤΣΕΚΑΡΕ ΑΥΤΟ. ΓΙΑΤΙ ΕΙΝΑΙ ΕΔΩ;
+	struct entity *entityList;
+	int framelength;
 	struct scope *next;
 };
 
