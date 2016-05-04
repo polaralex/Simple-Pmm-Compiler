@@ -1,4 +1,6 @@
 
+int isRelop(char input[30]);
+
 struct endcode {
 	char line[128];
 	struct endcode *next;
@@ -150,4 +152,133 @@ void storerv(int registerNum, char variable[30]) {
 	}
 }
 
+int isRelop(char input[30]) {
+	if(strcmp(input, "=") == 0 || strcmp(input, "<>") == 0 || strcmp(input, "<") == 0 || strcmp(input, "<=") == 0 || strcmp(input, ">") == 0 || strcmp(input, ">=") == 0 ) {
+		return(1);
+	} else {
+		return(0);
+	}
+}
+
+char * whichRelop(char input[30]) {
+	
+	char output[30];
+
+	if( strcmp(input, "=") == 0 ) {
+		strcpy(output, "je");
+	}
+
+	if( strcmp(input, "<>") == 0 ) {
+		strcpy(output, "jne");
+	}
+
+	if( strcmp(input, "<") == 0 ) {
+		strcpy(output, "ja");
+	}
+
+	if ( strcmp(input, "<=") == 0 ) {
+		strcpy(output, "jae");
+	} 
+
+	if( strcmp(input, ">") == 0 ) {
+		strcpy(output, "jb");
+	}
+
+	if ( strcmp(input, ">=") == 0 ) {
+		strcpy(output, "jbe");
+	}
+
+	return(output);
+}
+
+void endcodeGeneration() {
+
+	char generatedCode[128];
+
+	quartet_node *current = quad_list_head;
+
+	while(current != NULL) {
+
+		sprintf(generatedCode, "L%d ", current->quartet.label);
+		addToEndcode(generatedCode);
+
+		if(strcmp(current->quartet.operator, "jump") == 0) {
+
+			sprintf(generatedCode, "jmp L%s\n", current->quartet.result);
+			addToEndcode(generatedCode);
+
+		} else if( isRelop(current->quartet.operator) == 1 ) {
+
+			loadvr(current->quartet.argument1, 1);
+			loadvr(current->quartet.argument2, 2);
+			sprintf(generatedCode, "cmpi R[1], R[2]\n");
+			addToEndcode(generatedCode);
+
+			char * relopSign = whichRelop(current->quartet.operator);
+
+			sprintf(generatedCode, "%s L%s\n", relopSign, current->quartet.result);
+			addToEndcode(generatedCode);
+
+		} else if (strcmp(current->quartet.operator, ":=") == 0) {
+
+			loadvr(current->quartet.argument1, 1);
+			storerv(1, current->quartet.result);
+
+		} else if (strcmp(current->quartet.operator, "+") == 0) {
+
+			loadvr(current->quartet.argument1, 1);
+			loadvr(current->quartet.argument2, 2);
+			sprintf(generatedCode, "addi R[3], R[1], R[2]\n");
+			addToEndcode(generatedCode);
+			storerv(3, current->quartet.result);
+
+		} else if (strcmp(current->quartet.operator, "-") == 0) {
+
+			loadvr(current->quartet.argument1, 1);
+			loadvr(current->quartet.argument2, 2);
+			sprintf(generatedCode, "subi R[3], R[1], R[2]\n");
+			addToEndcode(generatedCode);
+			storerv(3, current->quartet.result);
+
+		} else if (strcmp(current->quartet.operator, "*") == 0) {
+
+			loadvr(current->quartet.argument1, 1);
+			loadvr(current->quartet.argument2, 2);
+			sprintf(generatedCode, "muli R[3], R[1], R[2]\n");
+			addToEndcode(generatedCode);
+			storerv(3, current->quartet.result);
+
+		} else if (strcmp(current->quartet.operator, "/") == 0) {
+
+			loadvr(current->quartet.argument1, 1);
+			loadvr(current->quartet.argument2, 2);
+			sprintf(generatedCode, "divi R[3], R[1], R[2]\n");
+			addToEndcode(generatedCode);
+			storerv(3, current->quartet.result);
+
+		} else if (strcmp(current->quartet.operator, "out") == 0) {
+
+			loadvr(current->quartet.argument1, 1);
+			sprintf(generatedCode, "outi R[1]\n");
+			addToEndcode(generatedCode);
+
+		} else if (strcmp(current->quartet.operator, "in") == 0) {
+
+			sprintf(generatedCode, "ini R[1]\n");
+			storerv(1, current->quartet.argument1);
+			addToEndcode(generatedCode);
+
+		} else if (strcmp(current->quartet.operator, "retv") == 0) {
+
+			loadvr(current->quartet.argument1, 1);
+			sprintf(generatedCode, "movi R[255], M[8+R[0]]\n");
+			addToEndcode(generatedCode);
+			sprintf(generatedCode, "movi M[R[255]], R[1]\n");
+			addToEndcode(generatedCode);
+
+		}
+
+	}
+
+}
 
