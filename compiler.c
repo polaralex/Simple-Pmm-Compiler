@@ -8,6 +8,9 @@
 #include "defines.h"
 #include "functions.h"
 #include "lex.c"
+#include "intercode_functions.c"
+#include "symbol_table.c"
+#include "endcode.c"
 #include "syntax_analyzer.c"
 
 void getFilenameWithoutExtension(char nameoffile[30], char * filenameWithoutExtension);

@@ -1,4 +1,3 @@
-#include "defines.h"
 
 #define VARIABLE_E 1
 #define FUNCTION 2
@@ -11,12 +10,6 @@
 
 #define TYPE_FUNCTION 8
 #define TYPE_PROCEDURE 9
-
-void addScope(char name[30]);
-void deleteScope();
-void addEntity(char name[30], int type, int mode, char value[30]);
-struct entity *lookupEntity(char name[30]);
-void printSymbolTable();
 
 // Data Structs:
 struct functionType {
@@ -63,6 +56,12 @@ struct recordArgument {
 // List Global Variables:
 struct scope *scopeHead = NULL;
 struct recordArgument *argumentHead = NULL;
+
+void addScope(char name[30]);
+void deleteScope();
+void addEntity(char name[30], int type, int mode, char value[30]);
+struct entity *lookupEntity(char name[30]);
+void printSymbolTable();
 
 // Functions:
 void addScope(char name[30]) {
@@ -130,6 +129,7 @@ void addEntity(char name[30], int type, int mode, char value[30]) {
 
 	// TODO: Check this:
 	while (current != NULL){
+
 		previous = current;
 
 		if(current->type != FUNCTION) {

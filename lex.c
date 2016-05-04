@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "defines.h"
+// #include "defines.h"
 
 int isCharacterValid(char character);
 int stateAnalyzer (FILE *input, char *output, char *encodedOutput);

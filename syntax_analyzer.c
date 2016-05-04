@@ -2,9 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "defines.h"
-#include "intercode_functions.c"
-#include "symbol_table.c"
 
 // P-- Grammar:
 void program();
