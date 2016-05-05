@@ -113,6 +113,7 @@ void addEntity(char name[30], int type, int mode, char value[30]) {
 	new_entity = malloc(sizeof(struct entity));
 
 	if(type == FUNCTION){
+		new_entity->function = malloc(sizeof(struct functionType));
 		strcpy(new_entity->function.name, name);
 	} else {
 		strcpy(new_entity->name, name);
@@ -127,19 +128,7 @@ void addEntity(char name[30], int type, int mode, char value[30]) {
 	previous = NULL;
 	current = scopeHead->entityList;
 
-	// TODO: Check this:
-	while (current != NULL){
-
-		previous = current;
-
-		if(current->type != FUNCTION) {
-			last_offset = current->offset;
-		}
-
-		current = current->next;
-	}
-
-	if (previous == NULL) {
+	if(current == NULL) {
 
 		scopeHead->entityList = new_entity;
 		new_entity->offset = 12;
@@ -147,10 +136,23 @@ void addEntity(char name[30], int type, int mode, char value[30]) {
 
 	} else {
 
+		while (current != NULL){
+
+			previous = current;
+
+			if(current->type != FUNCTION) {
+				last_offset = current->offset;
+			}
+
+			current = current->next;
+		}
+
 		previous->next = new_entity;
 		new_entity->offset = last_offset + 4;
 		scopeHead->framelength = new_entity->offset + 4;
+
 	}
+
 }
 
 struct entity *lookupEntity(char name[30]) {
@@ -162,15 +164,17 @@ struct entity *lookupEntity(char name[30]) {
 	currentScope = scopeHead;
 
 	while (currentScope != NULL) {
+
 		currentEntity = currentScope->entityList;
 
 		while (currentEntity != NULL) {
 
-			if(strcmp(currentEntity->name, name) == 0 == strcmp(currentEntity->function.name, name)==0 || strcmp(currentScope->name, name) == 0) {
+			if(strcmp(currentEntity->name, name) == 0 || strcmp(currentEntity->function.name, name)==0 || strcmp(currentScope->name, name) == 0) {
+				
 				return currentEntity;
-			} else {
-				currentEntity = currentEntity->next;
 			}
+			
+			currentEntity = currentEntity->next;
 		}
 
 		currentScope=currentScope->next;
@@ -180,8 +184,8 @@ struct entity *lookupEntity(char name[30]) {
 		printf("The requested Entity (%s) was not found.\n\n", name);
 	}
 
-	// Returns ZERO if the Entity is not found:
-	return(0);
+	// Returns NULL if the Entity is not found:
+	return(NULL);
 }
 
 void printSymbolTable() {
