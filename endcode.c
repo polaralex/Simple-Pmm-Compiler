@@ -1,22 +1,20 @@
 
-void gnlvcode(char name[30]);
-void loadvr(char variable[30], int registerNum);
-void storerv(int registerNum, char variable[30]);
-void addToEndcode(char input[128]);
-void endcodeGeneration();
-void whichRelop(char *input, char *relopSign);
-int isRelop(char input[30]);
-void exportEndcode();
-
 struct endcode {
 	char line[128];
 	struct endcode *next;
 };
 
+void gnlvcode(char name[30]);
+void loadvr(char variable[30], int registerNum);
+void storerv(int registerNum, char variable[30]);
+void addToEndcode(char input[128]);
+void endcodeGeneration(char nameoffile[30], quartet_node *quad_list_head);
+void whichRelop(char *input, char *relopSign);
+int isRelop(char input[30]);
+void exportEndcode(char nameoffile[30], struct endcode *endcodeHead);
+
 struct endcode *endcodeHead;
-
 FILE *endcodeOutputFile;
-
 int i_counter = 0; // Counter for Function Parameters
 
 void addToEndcode(char input[128]) {
@@ -163,13 +161,14 @@ void storerv(int registerNum, char variable[30]) {
 	}
 }
 
-void endcodeGeneration() {
+void endcodeGeneration(char nameoffile[30], quartet_node *quad_list_head) {
 
 	char generatedCode[128];
-
 	quartet_node *current = quad_list_head;
 
 	while(current != NULL) {
+
+		printf("Debug: Endcode Generation.\n");
 
 		sprintf(generatedCode, "L%d ", current->quartet.label);
 		addToEndcode(generatedCode);
@@ -302,6 +301,20 @@ void endcodeGeneration() {
 
 					}
 
+				} else if (strcmp(current->quartet.argument2, "RET") == 0) {
+
+				sprintf(generatedCode, "movi R[255], R[0]");
+				addToEndcode(generatedCode);
+
+				sprintf(generatedCode, "movi R[254], %d", foundEntity->offset);
+				addToEndcode(generatedCode);
+
+				sprintf(generatedCode, "movi R[255], R[254], R[255]");
+				addToEndcode(generatedCode);
+
+				sprintf(generatedCode, "movi M[%d+R[0]], R[255]", scopeHead->framelength+8);
+				addToEndcode(generatedCode);
+
 				} else {
 
 					if(foundEntity->type == VARIABLE || (foundEntity->type == PARAMETER && foundEntity->parMode == PASS_BY_VALUE) ) {
@@ -319,24 +332,78 @@ void endcodeGeneration() {
 						addToEndcode(generatedCode);
 
 					}
+
 				}
-
-			} else if (strcmp(current->quartet.argument2, "RET") == 0) {
-
-				sprintf(generatedCode, "movi R[255], R[0]");
-				addToEndcode(generatedCode);
-
-				sprintf(generatedCode, "movi R[254], %d", foundEntity->offset);
-				addToEndcode(generatedCode);
-
-				sprintf(generatedCode, "movi R[255], R[254], R[255]");
-				addToEndcode(generatedCode);
-
-				sprintf(generatedCode, "movi M[%d+R[0]], R[255]", scopeHead->framelength+8);
-				addToEndcode(generatedCode);
 			}
+
+		} else if (strcmp(current->quartet.operator, "call") == 0) {
+
+			struct entity *foundEntity;
+			foundEntity = lookupEntity(current->quartet.argument1);
+
+			if(foundEntity->nestingLevel == scopeHead->nestingLevel) {
+
+				sprintf(generatedCode, "movi R[255], M[4+R[0]]");
+				addToEndcode(generatedCode);
+				sprintf(generatedCode, "movi M[%d+R[0]], R[255]", scopeHead->framelength+4);
+				addToEndcode(generatedCode);
+
+			} else if (foundEntity->nestingLevel > scopeHead->nestingLevel) {
+
+				sprintf(generatedCode, "movi M[%d+R[0]], R[0]", scopeHead->framelength+4);
+				addToEndcode(generatedCode);
+
+			}
+
+			sprintf(generatedCode, "movi R[255], %d", scopeHead->framelength);
+			addToEndcode(generatedCode);
+
+			sprintf(generatedCode, "addi R[0], R[255], R[0]");
+			addToEndcode(generatedCode);
+
+			sprintf(generatedCode, "movi R[255], $");
+			addToEndcode(generatedCode);
+
+			sprintf(generatedCode, "movi R[254], 15");
+			addToEndcode(generatedCode);
+
+			sprintf(generatedCode, "addi R[255], R[255], R[254]");
+			addToEndcode(generatedCode);
+
+			sprintf(generatedCode, "movi M[R[0]], R[255]");
+			addToEndcode(generatedCode);
+
+			sprintf(generatedCode, "jmp L%d", foundEntity->function.startQuad);
+			addToEndcode(generatedCode);
+
+			sprintf(generatedCode, "movi R[255], %d", scopeHead->framelength);
+			addToEndcode(generatedCode);
+
+			sprintf(generatedCode, "subi R[0], R[0], R[255]");
+			addToEndcode(generatedCode);
+		
+		} else if (strcmp(current->quartet.operator, "end_block") == 0) {
+
+			sprintf(generatedCode, "jmp M[R[0]]");
+			addToEndcode(generatedCode);
+
+		} else if (strcmp(current->quartet.operator, "begin_block") == 0) {
+
+			sprintf(generatedCode, "");
+			addToEndcode(generatedCode);
+
+		} else if (strcmp(current->quartet.operator, "halt") == 0) {
+
+			sprintf(generatedCode, "halt");
+			addToEndcode(generatedCode);
+
 		}
+
+		current = current->next;
 	}
+
+	// Finally, print the generated list:
+	exportEndcode(nameoffile, endcodeHead);
 }
 
 
@@ -375,8 +442,24 @@ void whichRelop(char *input, char *relopSign) {
 	}
 }
 
-void exportEndcode() {
+void exportEndcode(char nameoffile[30], struct endcode *endcodeHead) {
 
+	printf("-- Starting Export of Endcode to .msim file --\n\n");
+
+	// File Creation
+	char filename[30];
+	strcpy(filename, nameoffile);
+	strcat(filename, ".msim");
+	FILE *endcodeOutputFile = fopen(filename, "w");
+
+	if (endcodeOutputFile == NULL) {
+    	printf("Error opening file!\n");
+    	exit(1);
+	}
+
+	fprintf(endcodeOutputFile, "\n");
+
+	// Print the Node list:
 	struct endcode *current = endcodeHead;
 
 	while (current != NULL) {
