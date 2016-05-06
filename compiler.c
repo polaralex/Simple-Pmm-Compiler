@@ -13,8 +13,6 @@
 #include "endcode.c"
 #include "syntax_analyzer.c"
 
-void getFilenameWithoutExtension(char nameoffile[30], char * filenameWithoutExtension);
-
 int main(int argc, char *argv[]) {
 
 	char nameoffile[30];
@@ -62,9 +60,9 @@ int main(int argc, char *argv[]) {
 	exportQuadsToCFile(filenameWithoutExtension, quad_list_head);
 	printf("[INTERMEDIATE CODE] Intermediate Code Generation is Complete.\n\n");
 
-	// Produce Endcode:
-	printf("[ENDCODE] Starting Endcode Generation.\n\n");
-	endcodeGeneration(filenameWithoutExtension, quad_list_head);
+	// Finally, print the generated list:
+	printf("[ENDCODE] Exporting Endcode to File.\n\n");
+	exportEndcode(endcodeHead);
 
 	printf("[ENDCODE] Endcode Generation is Complete.\n\n");
 	printf("[DONE] Compiling is Complete.\n[DONE] Check the Exported files for the Produced Code :)\n\n");

@@ -9,6 +9,8 @@ int error(char *string){
 	return(0);
 }
 
+void getFilenameWithoutExtension(char nameoffile[30], char * filenameWithoutExtension);
+
 // Global file pointer and Token variable:
 static FILE *input;
 static int token;

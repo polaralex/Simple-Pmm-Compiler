@@ -11,14 +11,6 @@
 #define TYPE_FUNCTION 8
 #define TYPE_PROCEDURE 9
 
-// Data Structs:
-struct functionType {
-	char name[30];
-	int startQuad;
-	int type;
-	struct recordArgument *argumentList;
-};
-
 struct entity {
 
 	char name[30];
@@ -30,7 +22,8 @@ struct entity {
 	int offset;
 
 	// Function:
-	struct functionType function;
+	int startQuad;
+	struct recordArgument *argumentList;
 
 	// Constant:
 	char value[30];
@@ -112,13 +105,7 @@ void addEntity(char name[30], int type, int mode, char value[30]) {
 
 	new_entity = malloc(sizeof(struct entity));
 
-	if(type == FUNCTION){
-		new_entity->function = malloc(sizeof(struct functionType));
-		strcpy(new_entity->function.name, name);
-	} else {
-		strcpy(new_entity->name, name);
-	}
-
+	strcpy(new_entity->name, name);
 	new_entity->type = type;
 	new_entity->parMode = mode;
 	strcpy(new_entity->value, value);
@@ -150,9 +137,7 @@ void addEntity(char name[30], int type, int mode, char value[30]) {
 		previous->next = new_entity;
 		new_entity->offset = last_offset + 4;
 		scopeHead->framelength = new_entity->offset + 4;
-
 	}
-
 }
 
 struct entity *lookupEntity(char name[30]) {
@@ -169,7 +154,7 @@ struct entity *lookupEntity(char name[30]) {
 
 		while (currentEntity != NULL) {
 
-			if(strcmp(currentEntity->name, name) == 0 || strcmp(currentEntity->function.name, name)==0 || strcmp(currentScope->name, name) == 0) {
+			if(strcmp(currentEntity->name, name) == 0 || strcmp(currentScope->name, name) == 0) {
 				
 				return currentEntity;
 			}
@@ -209,7 +194,7 @@ void printSymbolTable() {
 			if(currentEntity->type == VARIABLE_E) {
 				printf("<Variable %s, %d> \n", currentEntity->name, currentEntity->offset);
 			} else if (currentEntity->type == FUNCTION) {
-				printf("<Function: %s> \n", currentEntity->function.name);
+				printf("<Function: %s> \n", currentEntity->name);
 			} else if (currentEntity->type == CONSTANT) {
 				printf("<Constant: %s, %d, Value:%s> \n", currentEntity->name, currentEntity->offset, currentEntity->value);
 			} else if (currentEntity->type == PARAMETER) {

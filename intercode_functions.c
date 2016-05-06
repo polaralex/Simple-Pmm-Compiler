@@ -32,6 +32,7 @@ void addToTempVariablesList(char *variable);
 
 // List pointers:
 quartet_node *quad_list_head; //This is the genquad list.
+quartet_node *quad_list_endcode_pointer;
 label_node *label_head;
 
 label_node * emptylist();

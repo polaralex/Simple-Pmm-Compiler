@@ -62,6 +62,8 @@ void program() {
 
 			printSymbolTable();
 
+			endcodeGeneration();
+
 			deleteScope();
 
 		} else {
@@ -349,14 +351,16 @@ void func() {
 
 			struct entity *func_entity;
 			func_entity=lookupEntity(procedure_name);
-			func_entity->function.startQuad = nextquadlabel;
-			func_entity->function.type = TYPE_PROCEDURE;
+			func_entity->startQuad = nextquadlabel;
+			func_entity->type = TYPE_PROCEDURE;
 
 			addScope(procedure_name);
 
 			funcBody(procedure_name);
 
 			printSymbolTable();
+
+			endcodeGeneration();
 
 			deleteScope();
 		}
@@ -373,14 +377,16 @@ void func() {
 
 			struct entity *func_entity;
 			func_entity=lookupEntity(procedure_name);
-			func_entity->function.startQuad = nextquadlabel;
-			func_entity->function.type = TYPE_FUNCTION;
+			func_entity->startQuad = nextquadlabel;
+			func_entity->type = TYPE_FUNCTION;
 
 			addScope(procedure_name);
 			
 			funcBody(procedure_name);
 
 			printSymbolTable();
+
+			endcodeGeneration();
 
 			deleteScope();
 		}
