@@ -65,6 +65,7 @@ void gnlvcode(char name[30]) {
 void loadvr(char variable[30], int registerNum) {
 
 	char generatedCode[128];
+
 	struct entity *foundEntity;
 	foundEntity = lookupEntity(variable);
 
@@ -77,8 +78,10 @@ void loadvr(char variable[30], int registerNum) {
 		
 		// Case: Global Variable
 		sprintf(generatedCode, "\tmovi R[%d], M[%d]\n", registerNum, 600+foundEntity->offset);
+		addToEndcode(generatedCode);
 	
 	} else if (foundEntity->nestingLevel == scopeHead->nestingLevel) {
+		// Entity resides in current scope:
 
 		if(foundEntity->type == VARIABLE || (foundEntity->type == PARAMETER && foundEntity->parMode == PASS_BY_VALUE) || foundEntity->type == TEMPORARY_VARIABLE){
 
@@ -89,6 +92,7 @@ void loadvr(char variable[30], int registerNum) {
 
 			printf(generatedCode, "\tmovi R[255], M[%d+R[0]]\n", foundEntity->offset);
 			addToEndcode(generatedCode);
+
 			printf(generatedCode, "\tmovi R[%d], M[R[255]]\n", registerNum);
 			addToEndcode(generatedCode);
 
@@ -107,6 +111,7 @@ void loadvr(char variable[30], int registerNum) {
 			gnlvcode(foundEntity->name);
 			sprintf(generatedCode, "\tmovi R[255], M[R[255]]\n");
 			addToEndcode(generatedCode);
+
 			sprintf(generatedCode, "\tmovi R[%d], M[R[255]]\n", registerNum);
 			addToEndcode(generatedCode);
 		}
@@ -116,6 +121,7 @@ void loadvr(char variable[30], int registerNum) {
 void storerv(int registerNum, char variable[30]) {
 
 	char generatedCode[128];
+
 	struct entity *foundEntity;
 	foundEntity = lookupEntity(variable);
 
@@ -136,9 +142,9 @@ void storerv(int registerNum, char variable[30]) {
 
 			sprintf(generatedCode, "\tmovi R[255], M[%d+R[0]]\n", foundEntity->offset);
 			addToEndcode(generatedCode);
+
 			sprintf(generatedCode, "\tmovi M[R[255]], R[%d]\n", registerNum);
 			addToEndcode(generatedCode);
-
 		}
 
 	} else if (foundEntity->nestingLevel < scopeHead->nestingLevel) {
@@ -154,6 +160,7 @@ void storerv(int registerNum, char variable[30]) {
 			gnlvcode(foundEntity->name);
 			sprintf(generatedCode, "\tmovi R[255], M[R[255]]\n");
 			addToEndcode(generatedCode);
+
 			sprintf(generatedCode, "\tmovi M[R[255]], R[%d]\n", registerNum);
 			addToEndcode(generatedCode);
 		}

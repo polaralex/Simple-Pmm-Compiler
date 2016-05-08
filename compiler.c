@@ -58,12 +58,8 @@ int main(int argc, char *argv[]) {
 
 	// And, also, create the C language equivalent:
 	exportQuadsToCFile(filenameWithoutExtension, quad_list_head);
+	
 	printf("[INTERMEDIATE CODE] Intermediate Code Generation is Complete.\n\n");
-
-	// Finally, print the generated list:
-	printf("[ENDCODE] Exporting Endcode to File.\n\n");
-	exportEndcode(endcodeHead);
-
 	printf("[ENDCODE] Endcode Generation is Complete.\n\n");
 	printf("[DONE] Compiling is Complete.\n[DONE] Check the Exported files for the Produced Code :)\n\n");
 

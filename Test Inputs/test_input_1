@@ -2,8 +2,12 @@ program testprogram {
 
 	var v1, v2, v3;
 
-	if ( v1 > v3 and 34 > 23 or 203 < 203 and 273 <= 93 or 2842 <> 83 and not [v1 < v2] ) {
-		v1 := 2;
+	v1 := 2;
+	v2 := 3;
+	v3 := 10;
+
+	if ( v1 > v2 and 34 > 23 or 203 < 203 and 273 <= 93 or 2842 <> 83 and not [v1 < v2] ) {
+		v1 := v1 + 2;
 	}
 
 } 

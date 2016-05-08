@@ -548,7 +548,6 @@ void statement() {
 		char assignment_target[30];
 		strcpy(assignment_target, currentLexeme);
 		
-
 		getNextToken();
 
 		if ( token == assign ) {
@@ -1005,7 +1004,7 @@ void term(char **T_Place) {
 			// {P1}:
 			char *w = newtemp();
 
-			addEntity(w, 5, 0, "0");
+			addEntity(w, TEMPORARY_VARIABLE, 0, "0");
 
 			genquad("x", F1_Place, F2_Place, w);
 			strcpy(F1_Place, w);
@@ -1020,7 +1019,7 @@ void term(char **T_Place) {
 			// {P1}:
 			char *w = newtemp();
 
-			addEntity(w, 5, 0, "0");
+			addEntity(w, TEMPORARY_VARIABLE, 0, "0");
 
 			genquad("/", F1_Place, F2_Place, w);
 			strcpy(F1_Place, w);
@@ -1042,11 +1041,8 @@ void factor(char **F_Place) {
 
 		// Here we have to give the Integer value
 		// to the *F_Place value to be returned:
-
 		*F_Place = malloc(sizeof(char)*30);
 		strcpy(*F_Place, currentLexeme);
-
-		// TODO: Εδώ δεν θέλει addEntity??
 
 	} else if ( token == parenthleft ) {
 
@@ -1084,7 +1080,6 @@ void factor(char **F_Place) {
 		} else {
 
 			// Case: ID (terminal symbol)
-
 			*F_Place = malloc(sizeof(char)*30);
 			strcpy(*F_Place, currentLexeme);
 		}
@@ -1101,11 +1096,9 @@ void idtail(char **Id_Place) {
 	if ( peekToken == parenthleft ) {
 
 		actualpars();
-
 		char *w = newtemp();
 
-		addEntity(w, 5, 0, "0");
-
+		addEntity(w, TEMPORARY_VARIABLE, 0, "0");
 		genquad("par", w, "RET", "_");
 
 		*Id_Place = malloc(sizeof(char *)*30);
