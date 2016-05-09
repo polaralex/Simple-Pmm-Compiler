@@ -112,6 +112,8 @@ void addEntity(char name[30], int type, int mode, char value[30]) {
 	strcpy(new_entity->value, value);
 	new_entity->nestingLevel = scopeHead->nestingLevel;
 
+	printf("ADDED ENTITY: Name: %s, Type: %d, Mode: %d, Value: %s\n\n", name, type, mode, value);
+
 	new_entity->next = NULL;
 
 	previous = NULL;
@@ -157,7 +159,8 @@ struct entity *lookupEntity(char name[30]) {
 		while (currentEntity != NULL) {
 
 			if(strcmp(currentEntity->name, name) == 0 || strcmp(currentScope->name, name) == 0) {
-				
+
+				printf("LOOKUP ENTITY: To be returned -> Name: %s\n\n", currentEntity->name);
 				return currentEntity;
 			}
 			

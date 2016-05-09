@@ -707,6 +707,9 @@ void statement() {
 				expression(&E1_Place);
 
 				w = newtemp();
+
+				addEntity(w, TEMPORARY_VARIABLE, 0, "0");
+
 				genquad(":=", E1_Place, "_", w);
 
 				getNextToken();

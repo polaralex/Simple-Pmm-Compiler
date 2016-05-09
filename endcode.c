@@ -90,21 +90,25 @@ void loadvr(char variable[30], int registerNum) {
 		addToEndcode(generatedCode);
 	
 	} else if (foundEntity->nestingLevel == scopeHead->nestingLevel) {
-		// Entity resides in current scope:
 
+		// Entity resides in current scope:
 		printf("Inside loadvr: 3\n\n");
 
 		if(foundEntity->type == VARIABLE_E || (foundEntity->type == PARAMETER && foundEntity->parMode == PASS_BY_VALUE) || foundEntity->type == TEMPORARY_VARIABLE){
+
+			printf("Inside loadvr: 3->1\n\n");
 
 			sprintf(generatedCode, "\tmovi R[%d], M[%d+R[0]]\n", registerNum, foundEntity->offset);
 			addToEndcode(generatedCode);
 
 		} else if (foundEntity->type == PARAMETER && foundEntity->parMode == PASS_BY_REFERENCE) {
 
-			printf(generatedCode, "\tmovi R[255], M[%d+R[0]]\n", foundEntity->offset);
+			printf("Inside loadvr: 3->2\n\n");
+
+			sprintf(generatedCode, "\tmovi R[255], M[%d+R[0]]\n", foundEntity->offset);
 			addToEndcode(generatedCode);
 
-			printf(generatedCode, "\tmovi R[%d], M[R[255]]\n", registerNum);
+			sprintf(generatedCode, "\tmovi R[%d], M[R[255]]\n", registerNum);
 			addToEndcode(generatedCode);
 
 		}
@@ -289,6 +293,7 @@ void endcodeGeneration() {
 		} else if (strcmp(currentEndcode->quartet.operator, "retv") == 0) {
 
 			loadvr(currentEndcode->quartet.argument1, 1);
+
 			sprintf(generatedCode, "\tmovi R[255], M[8+R[0]]\n");
 			addToEndcode(generatedCode);
 			sprintf(generatedCode, "\tmovi M[R[255]], R[1]\n");
