@@ -12,6 +12,7 @@ void endcodeGeneration();
 void whichRelop(char *input, char *relopSign);
 int isRelop(char input[30]);
 void exportEndcode(struct endcode *endcodeHead);
+void debugPrintEndcode(struct endcode *endcodeHead);
 
 struct endcode *endcodeHead;
 int i_counter = 0; // Counter for Function Parameters
@@ -38,6 +39,8 @@ void addToEndcode(char input[128]) {
 		current->next = new_node;
 		new_node->next = NULL;
 	}
+
+	debugPrintEndcode(endcodeHead);
 }
 
 void gnlvcode(char name[30]) {
@@ -64,6 +67,8 @@ void gnlvcode(char name[30]) {
 
 void loadvr(char variable[30], int registerNum) {
 
+	printf("Inside loadvr: START\n\n");
+
 	char generatedCode[128];
 
 	struct entity *foundEntity;
@@ -71,11 +76,15 @@ void loadvr(char variable[30], int registerNum) {
 
 	if(isdigit(variable[0])) {
 
+		printf("Inside loadvr: 1\n\n");
+
 		sprintf(generatedCode,"\tmovi R[%d], %s\n", registerNum, variable);
 		addToEndcode(generatedCode);
 
 	} else if (foundEntity->nestingLevel == 1 && foundEntity->type != TEMPORARY_VARIABLE) {
 		
+		printf("Inside loadvr: 2\n\n");
+
 		// Case: Global Variable
 		sprintf(generatedCode, "\tmovi R[%d], M[%d]\n", registerNum, 600+foundEntity->offset);
 		addToEndcode(generatedCode);
@@ -83,7 +92,9 @@ void loadvr(char variable[30], int registerNum) {
 	} else if (foundEntity->nestingLevel == scopeHead->nestingLevel) {
 		// Entity resides in current scope:
 
-		if(foundEntity->type == VARIABLE || (foundEntity->type == PARAMETER && foundEntity->parMode == PASS_BY_VALUE) || foundEntity->type == TEMPORARY_VARIABLE){
+		printf("Inside loadvr: 3\n\n");
+
+		if(foundEntity->type == VARIABLE_E || (foundEntity->type == PARAMETER && foundEntity->parMode == PASS_BY_VALUE) || foundEntity->type == TEMPORARY_VARIABLE){
 
 			sprintf(generatedCode, "\tmovi R[%d], M[%d+R[0]]\n", registerNum, foundEntity->offset);
 			addToEndcode(generatedCode);
@@ -100,7 +111,9 @@ void loadvr(char variable[30], int registerNum) {
 
 	} else if (foundEntity->nestingLevel < scopeHead->nestingLevel) {
 
-		if(foundEntity->type == VARIABLE || (foundEntity->type == PARAMETER && foundEntity->parMode == PASS_BY_VALUE)) {
+		printf("Inside loadvr: 4\n\n");
+
+		if(foundEntity->type == VARIABLE_E || (foundEntity->type == PARAMETER && foundEntity->parMode == PASS_BY_VALUE)) {
 
 			gnlvcode(foundEntity->name);
 			sprintf(generatedCode, "\tmovi R[%d], M[R[255]]\n", registerNum);
@@ -120,12 +133,16 @@ void loadvr(char variable[30], int registerNum) {
 
 void storerv(int registerNum, char variable[30]) {
 
+	printf("Inside StoreRV: GENERAL\n");
+
 	char generatedCode[128];
 
 	struct entity *foundEntity;
 	foundEntity = lookupEntity(variable);
 
 	if (foundEntity->nestingLevel == 1 && foundEntity->type != TEMPORARY_VARIABLE) {
+
+		printf("Inside StoreRV: 1\n");
 		
 		// Case: Global Variable
 		sprintf(generatedCode, "\tmovi M[%d], R[%d]\n", 600+foundEntity->offset, registerNum);
@@ -133,12 +150,18 @@ void storerv(int registerNum, char variable[30]) {
 
 	} else if (foundEntity->nestingLevel == scopeHead->nestingLevel) {
 
-		if(foundEntity->type == VARIABLE || (foundEntity->type == PARAMETER && foundEntity->parMode == PASS_BY_VALUE) || foundEntity->type == TEMPORARY_VARIABLE ) {
+		printf("Inside StoreRV: 2\n");
+
+		if(foundEntity->type == VARIABLE_E || (foundEntity->type == PARAMETER && foundEntity->parMode == PASS_BY_VALUE) || foundEntity->type == TEMPORARY_VARIABLE ) {
+
+			printf("Inside StoreRV: 2->1\n");
 
 			sprintf(generatedCode, "\tmovi M[%d+R[0]], R[%d]\n", foundEntity->offset, registerNum);
 			addToEndcode(generatedCode);
 
 		} else if (foundEntity->type == PARAMETER && foundEntity->parMode == PASS_BY_REFERENCE) {
+
+			printf("Inside StoreRV: 2->2\n");
 
 			sprintf(generatedCode, "\tmovi R[255], M[%d+R[0]]\n", foundEntity->offset);
 			addToEndcode(generatedCode);
@@ -149,13 +172,19 @@ void storerv(int registerNum, char variable[30]) {
 
 	} else if (foundEntity->nestingLevel < scopeHead->nestingLevel) {
 
-		if (foundEntity->type == VARIABLE || (foundEntity->type == PARAMETER && foundEntity->parMode == PASS_BY_VALUE )) {
+		printf("Inside StoreRV: 3\n");
+
+		if (foundEntity->type == VARIABLE_E || (foundEntity->type == PARAMETER && foundEntity->parMode == PASS_BY_VALUE )) {
 			
+			printf("Inside StoreRV: 3->1\n");
+
 			gnlvcode(foundEntity->name);
 			sprintf(generatedCode, "\tmovi M[R[255]], R[%d]\n", registerNum);
 			addToEndcode(generatedCode);
 
 		} else if (foundEntity->type == PARAMETER && foundEntity->parMode == PASS_BY_REFERENCE) {
+
+			printf("Inside StoreRV: 3->2\n");
 
 			gnlvcode(foundEntity->name);
 			sprintf(generatedCode, "\tmovi R[255], M[R[255]]\n");
@@ -276,7 +305,7 @@ void endcodeGeneration() {
 
 				if(foundEntity->nestingLevel == scopeHead->nestingLevel) {
 
-					if(foundEntity->type == VARIABLE || (foundEntity->type == PARAMETER && foundEntity->parMode == PASS_BY_VALUE) ) {
+					if(foundEntity->type == VARIABLE_E || (foundEntity->type == PARAMETER && foundEntity->parMode == PASS_BY_VALUE) ) {
 
 						sprintf(generatedCode, "\tmovi R[255], R[0]\n");
 						addToEndcode(generatedCode);
@@ -325,7 +354,7 @@ void endcodeGeneration() {
 
 				} else {
 
-					if(foundEntity->type == VARIABLE || (foundEntity->type == PARAMETER && foundEntity->parMode == PASS_BY_VALUE) ) {
+					if(foundEntity->type == VARIABLE_E || (foundEntity->type == PARAMETER && foundEntity->parMode == PASS_BY_VALUE) ) {
 
 						gnlvcode(foundEntity->name);
 						sprintf(generatedCode, "\tmovi M[%d+R[0]], R[255]\n", d);
@@ -451,15 +480,22 @@ void whichRelop(char *input, char *relopSign) {
 	}
 }
 
+void debugPrintEndcode(struct endcode *endcodeHead) {
+
+	// Print the Node list:
+	struct endcode *current = endcodeHead;
+
+	printf("\n--Debug Endcode Print--\n");
+	while (current != NULL) {
+		printf("%s", current->line);
+		current = current->next;
+	}
+	printf("\n-- End of Debug Endcode--\n\n");
+}
+
 void exportEndcode(struct endcode *endcodeHead) {
 
 	printf("-- Starting Export of Endcode to .msim file --\n\n");
-
-	// File Creation
-	char filename[30];
-	strcpy(filename, "endcode");
-	strcat(filename, ".msim");
-	FILE *endcodeOutputFile = fopen(filename, "w");
 
 	if (endcodeOutputFile == NULL) {
     	printf("Error opening file!\n");

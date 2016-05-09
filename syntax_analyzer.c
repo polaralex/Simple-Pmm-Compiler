@@ -55,15 +55,12 @@ void program() {
 
 			char function_name[30];
 			strcpy(function_name, currentLexeme);
-
 			addScope(function_name);
 
 			block(function_name, IS_MAIN_PROGRAM);
 
 			printSymbolTable();
-
 			endcodeGeneration();
-
 			deleteScope();
 
 		} else {
@@ -294,7 +291,7 @@ void expression(char **E_place) {
 			// {P1}:
 			char *w = newtemp();
 
-			addEntity(w, 5, 0, "0");
+			addEntity(w, TEMPORARY_VARIABLE, 0, "0");
 
 			genquad("+", T1_Place, T2_Place, w);
 			strcpy(T1_Place, w);
@@ -309,7 +306,7 @@ void expression(char **E_place) {
 			// {P1}:
 			char *w = newtemp();
 
-			addEntity(w, 5, 0, "0");
+			addEntity(w, TEMPORARY_VARIABLE, 0, "0");
 
 			genquad("-", T1_Place, T2_Place, w);
 			strcpy(T1_Place, w);
@@ -347,22 +344,18 @@ void func() {
 
 			strcpy(procedure_name, currentLexeme);
 
+			// Add the function to the current scope and add
+			// data to it:
 			addEntity(procedure_name, FUNCTION, 0, "0");
-
 			struct entity *func_entity;
 			func_entity=lookupEntity(procedure_name);
 			func_entity->startQuad = nextquadlabel;
 			func_entity->type = TYPE_PROCEDURE;
 
+			// Create a new scope for this function:
 			addScope(procedure_name);
 
 			funcBody(procedure_name);
-
-			printSymbolTable();
-
-			endcodeGeneration();
-
-			deleteScope();
 		}
 
 	} else if (token == function_a) {
@@ -373,22 +366,18 @@ void func() {
 
 			strcpy(procedure_name, currentLexeme);
 
+			// Add the function to the current scope and add
+			// data to it:
 			addEntity(procedure_name, FUNCTION, 0, "0");
-
 			struct entity *func_entity;
 			func_entity=lookupEntity(procedure_name);
 			func_entity->startQuad = nextquadlabel;
 			func_entity->type = TYPE_FUNCTION;
 
+			// Create a new scope for this function:
 			addScope(procedure_name);
 			
 			funcBody(procedure_name);
-
-			printSymbolTable();
-
-			endcodeGeneration();
-
-			deleteScope();
 		}
 
 	} else {
@@ -402,6 +391,10 @@ void funcBody(char procedure_name[30]) {
 
 	formalPars();
 	block(procedure_name, 0);
+
+	printSymbolTable();
+	endcodeGeneration();
+	deleteScope();
 }
 
 void formalPars() {
@@ -474,7 +467,7 @@ void formalParItem() {
 			error("No variable declared in 'FormalParItem");
 		}
 
-		addEntity(currentLexeme, 4, PASS_BY_VALUE, "0");
+		addEntity(currentLexeme, PARAMETER, PASS_BY_VALUE, "0");
 
 	} else if ( token == inout_a ) {
 
@@ -484,7 +477,7 @@ void formalParItem() {
 			error("No variable declared in 'FormalParItem");
 		}
 
-		addEntity(currentLexeme, 4, PASS_BY_REFERENCE, "0");
+		addEntity(currentLexeme, PARAMETER, PASS_BY_REFERENCE, "0");
 	}
 }
 

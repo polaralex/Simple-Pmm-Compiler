@@ -9,7 +9,10 @@ int error(char *string){
 	return(0);
 }
 
+// Used for exporting the files with the name of the input plus extension:
 void getFilenameWithoutExtension(char nameoffile[30], char * filenameWithoutExtension);
+
+FILE *endcodeOutputFile;
 
 // Global file pointer and Token variable:
 static FILE *input;

@@ -17,6 +17,7 @@ int main(int argc, char *argv[]) {
 
 	char nameoffile[30];
 	char filenameWithoutExtension[30];
+
 	output[0] = '\0';
 	encodedOutput[0] = '\0';
 
@@ -50,15 +51,19 @@ int main(int argc, char *argv[]) {
 		error("Lexicographical Analysis could not be completed. Please, check the input for errors.\n");
 	}
 
+	// File Creation for Endcode:
+	char filename[30];
+	strcpy(filename, filenameWithoutExtension);
+	strcat(filename, ".msim");
+	endcodeOutputFile = fopen(filename, "w");
+
 	// Then, continue to the Syntax Analyzer:
 	program();
 
-	// Finally, create (and populate) the Text file containing the Quads List:
+	// Finally, create (and populate) the Text (and the C-lang equivalent) file containing the Quads List:
 	printQuadsToFile(filenameWithoutExtension, quad_list_head);
-
-	// And, also, create the C language equivalent:
 	exportQuadsToCFile(filenameWithoutExtension, quad_list_head);
-	
+
 	printf("[INTERMEDIATE CODE] Intermediate Code Generation is Complete.\n\n");
 	printf("[ENDCODE] Endcode Generation is Complete.\n\n");
 	printf("[DONE] Compiling is Complete.\n[DONE] Check the Exported files for the Produced Code :)\n\n");
