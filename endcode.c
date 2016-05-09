@@ -433,21 +433,20 @@ void endcodeGeneration() {
 			sprintf(generatedCode, "\tsubi R[0], R[0], R[255]\n");
 			addToEndcode(generatedCode);
 		
-		} else if (strcmp(currentEndcode->quartet.operator, "end_block\n") == 0) {
+		} else if (strcmp(currentEndcode->quartet.operator, "end_block") == 0) {
 
 			sprintf(generatedCode, "\tjmp M[R[0]]\n");
 			addToEndcode(generatedCode);
 
-		} else if (strcmp(currentEndcode->quartet.operator, "begin_block\n") == 0) {
+		} else if (strcmp(currentEndcode->quartet.operator, "begin_block") == 0) {
 
 			sprintf(generatedCode, "\t\n");
 			addToEndcode(generatedCode);
 
-		} else if (strcmp(currentEndcode->quartet.operator, "halt\n") == 0) {
+		} else if (strcmp(currentEndcode->quartet.operator, "halt") == 0) {
 
 			sprintf(generatedCode, "\thalt\n");
 			addToEndcode(generatedCode);
-
 		}
 
 		previousCurrentEndcode = currentEndcode;

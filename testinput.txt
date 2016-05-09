@@ -1,6 +1,0 @@
-program alex 
-{ 
-	var abcd, efgh, jkilm;
-
-	return (277);
-}
