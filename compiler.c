@@ -15,8 +15,8 @@
 
 int main(int argc, char *argv[]) {
 
-	char nameoffile[30];
-	char filenameWithoutExtension[30];
+	char nameoffile[64];
+	char filenameWithoutExtension[64];
 
 	output[0] = '\0';
 	encodedOutput[0] = '\0';
@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	// File Creation for Endcode:
-	char filename[30];
+	char filename[64];
 	strcpy(filename, filenameWithoutExtension);
 	strcat(filename, ".msim");
 	endcodeOutputFile = fopen(filename, "w");
@@ -70,12 +70,12 @@ int main(int argc, char *argv[]) {
 
 }
 
-void getFilenameWithoutExtension(char nameoffile[30], char * nameWithoutExtension) {
+void getFilenameWithoutExtension(char nameoffile[64], char * nameWithoutExtension) {
 
  	int i = 0;
  	nameWithoutExtension[0] = '\0';
 
- 	while( nameoffile[i] != '\0' && nameoffile[i] != '.' && i<30){
+ 	while( nameoffile[i] != '\0' && nameoffile[i] != '.' && i<64){
  		nameWithoutExtension[i] = nameoffile[i];
  		nameWithoutExtension[i+1] = '\0';
  		i++;

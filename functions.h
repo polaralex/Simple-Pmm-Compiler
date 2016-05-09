@@ -10,7 +10,7 @@ int error(char *string){
 }
 
 // Used for exporting the files with the name of the input plus extension:
-void getFilenameWithoutExtension(char nameoffile[30], char * filenameWithoutExtension);
+void getFilenameWithoutExtension(char nameoffile[64], char * filenameWithoutExtension);
 
 FILE *endcodeOutputFile;
 

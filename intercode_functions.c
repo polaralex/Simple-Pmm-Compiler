@@ -211,11 +211,11 @@ void addToTempVariablesList(char *variable) {
 	}
 }
 
-void printQuadsToFile(char nameoffile[30], quartet_node *quadsList) {
+void printQuadsToFile(char nameoffile[64], quartet_node *quadsList) {
 
 	printf("-- Starting Export of Quads to .int file --\n\n");
 
-	char filename[30];
+	char filename[64];
 	strcpy(filename, nameoffile);
 	strcat(filename, ".int");
 	FILE *quadsOutputFile = fopen(filename, "w");
@@ -260,11 +260,11 @@ void printQuadsToFile(char nameoffile[30], quartet_node *quadsList) {
 	fclose(quadsOutputFile);
 }
 
-void exportQuadsToCFile(char nameoffile[30], quartet_node *quadsList) {
+void exportQuadsToCFile(char nameoffile[64], quartet_node *quadsList) {
 
 	printf("-- Starting Export of Quads to C-equivalent file --\n\n");
 
-	char filename[30];
+	char filename[64];
 	strcpy(filename, nameoffile);
 	strcat(filename, ".c");
 	FILE *cOutputFile = fopen(filename, "w");
