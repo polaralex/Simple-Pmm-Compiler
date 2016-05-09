@@ -105,11 +105,13 @@ void addEntity(char name[30], int type, int mode, char value[30]) {
 
 	new_entity = malloc(sizeof(struct entity));
 
+	// Data copy:
 	strcpy(new_entity->name, name);
 	new_entity->type = type;
 	new_entity->parMode = mode;
 	strcpy(new_entity->value, value);
 	new_entity->nestingLevel = scopeHead->nestingLevel;
+
 	new_entity->next = NULL;
 
 	previous = NULL;
@@ -127,7 +129,7 @@ void addEntity(char name[30], int type, int mode, char value[30]) {
 
 			previous = current;
 
-			if(current->type != FUNCTION) {
+			if(current->type != TYPE_FUNCTION || current->type != TYPE_PROCEDURE) {
 				last_offset = current->offset;
 			}
 
@@ -193,8 +195,10 @@ void printSymbolTable() {
 
 			if(currentEntity->type == VARIABLE_E) {
 				printf("<Variable %s, %d> \n", currentEntity->name, currentEntity->offset);
-			} else if (currentEntity->type == FUNCTION) {
+			} else if (currentEntity->type == TYPE_FUNCTION) {
 				printf("<Function: %s> \n", currentEntity->name);
+			} else if (currentEntity->type == TYPE_PROCEDURE) {
+				printf("<Procedure: %s> \n", currentEntity->name);
 			} else if (currentEntity->type == CONSTANT) {
 				printf("<Constant: %s, %d, Value:%s> \n", currentEntity->name, currentEntity->offset, currentEntity->value);
 			} else if (currentEntity->type == PARAMETER) {

@@ -201,104 +201,113 @@ void endcodeGeneration() {
 	printf("Debug: Endcode Generation.\n");
 
 	char generatedCode[128];
-	quartet_node *current = quad_list_head;
 
-	while (current != NULL) {
+	// This keeps the print pointer to the same place, in between
+	// changes of scopes:
+	if(checkForEndcodeQuadPointerIfAlreadyInitialized == 0){
+		currentEndcode = quad_list_head;
+		checkForEndcodeQuadPointerIfAlreadyInitialized = 1;
+	} else {
+		currentEndcode = previousCurrentEndcode;
+		currentEndcode = currentEndcode->next;
+	}
+
+	while (currentEndcode != NULL) {
 
 		printf("Debug: Endcode Generation LOOP.\n");
 
-		sprintf(generatedCode, "L%d \n", current->quartet.label);
+		sprintf(generatedCode, "L%d \n", currentEndcode->quartet.label);
 		addToEndcode(generatedCode);
 
-		if(strcmp(current->quartet.operator, "jump") == 0) {
+		if(strcmp(currentEndcode->quartet.operator, "jump") == 0) {
 
-			sprintf(generatedCode, "\tjmp L%s\n", current->quartet.result);
+			sprintf(generatedCode, "\tjmp L%s\n", currentEndcode->quartet.result);
 			addToEndcode(generatedCode);
 
-		} else if( isRelop(current->quartet.operator) == 1 ) {
+		} else if( isRelop(currentEndcode->quartet.operator) == 1 ) {
 
-			loadvr(current->quartet.argument1, 1);
-			loadvr(current->quartet.argument2, 2);
+			loadvr(currentEndcode->quartet.argument1, 1);
+			loadvr(currentEndcode->quartet.argument2, 2);
 			sprintf(generatedCode, "\tcmpi R[1], R[2]\n");
 			addToEndcode(generatedCode);
 
 			char relopSign[30];
-			whichRelop(current->quartet.operator, relopSign);
+			whichRelop(currentEndcode->quartet.operator, relopSign);
 
-			sprintf(generatedCode, "\t%s L%s\n", relopSign, current->quartet.result);
+			sprintf(generatedCode, "\t%s L%s\n", relopSign, currentEndcode->quartet.result);
 			addToEndcode(generatedCode);
 
-		} else if (strcmp(current->quartet.operator, ":=") == 0) {
+		} else if (strcmp(currentEndcode->quartet.operator, ":=") == 0) {
 
-			loadvr(current->quartet.argument1, 1);
-			storerv(1, current->quartet.result);
+			loadvr(currentEndcode->quartet.argument1, 1);
+			storerv(1, currentEndcode->quartet.result);
 
-		} else if (strcmp(current->quartet.operator, "+") == 0) {
+		} else if (strcmp(currentEndcode->quartet.operator, "+") == 0) {
 
-			loadvr(current->quartet.argument1, 1);
-			loadvr(current->quartet.argument2, 2);
+			loadvr(currentEndcode->quartet.argument1, 1);
+			loadvr(currentEndcode->quartet.argument2, 2);
 			sprintf(generatedCode, "\taddi R[3], R[1], R[2]\n");
 			addToEndcode(generatedCode);
-			storerv(3, current->quartet.result);
+			storerv(3, currentEndcode->quartet.result);
 
-		} else if (strcmp(current->quartet.operator, "-") == 0) {
+		} else if (strcmp(currentEndcode->quartet.operator, "-") == 0) {
 
-			loadvr(current->quartet.argument1, 1);
-			loadvr(current->quartet.argument2, 2);
+			loadvr(currentEndcode->quartet.argument1, 1);
+			loadvr(currentEndcode->quartet.argument2, 2);
 			sprintf(generatedCode, "\tsubi R[3], R[1], R[2]\n");
 			addToEndcode(generatedCode);
-			storerv(3, current->quartet.result);
+			storerv(3, currentEndcode->quartet.result);
 
-		} else if (strcmp(current->quartet.operator, "*") == 0) {
+		} else if (strcmp(currentEndcode->quartet.operator, "*") == 0) {
 
-			loadvr(current->quartet.argument1, 1);
-			loadvr(current->quartet.argument2, 2);
+			loadvr(currentEndcode->quartet.argument1, 1);
+			loadvr(currentEndcode->quartet.argument2, 2);
 			sprintf(generatedCode, "\tmuli R[3], R[1], R[2]\n");
 			addToEndcode(generatedCode);
-			storerv(3, current->quartet.result);
+			storerv(3, currentEndcode->quartet.result);
 
-		} else if (strcmp(current->quartet.operator, "/") == 0) {
+		} else if (strcmp(currentEndcode->quartet.operator, "/") == 0) {
 
-			loadvr(current->quartet.argument1, 1);
-			loadvr(current->quartet.argument2, 2);
+			loadvr(currentEndcode->quartet.argument1, 1);
+			loadvr(currentEndcode->quartet.argument2, 2);
 			sprintf(generatedCode, "\tdivi R[3], R[1], R[2]\n");
 			addToEndcode(generatedCode);
-			storerv(3, current->quartet.result);
+			storerv(3, currentEndcode->quartet.result);
 
-		} else if (strcmp(current->quartet.operator, "out") == 0) {
+		} else if (strcmp(currentEndcode->quartet.operator, "out") == 0) {
 
-			loadvr(current->quartet.argument1, 1);
+			loadvr(currentEndcode->quartet.argument1, 1);
 			sprintf(generatedCode, "\touti R[1]\n");
 			addToEndcode(generatedCode);
 
-		} else if (strcmp(current->quartet.operator, "in") == 0) {
+		} else if (strcmp(currentEndcode->quartet.operator, "in") == 0) {
 
 			sprintf(generatedCode, "\tini R[1]\n");
-			storerv(1, current->quartet.argument1);
+			storerv(1, currentEndcode->quartet.argument1);
 			addToEndcode(generatedCode);
 
-		} else if (strcmp(current->quartet.operator, "retv") == 0) {
+		} else if (strcmp(currentEndcode->quartet.operator, "retv") == 0) {
 
-			loadvr(current->quartet.argument1, 1);
+			loadvr(currentEndcode->quartet.argument1, 1);
 			sprintf(generatedCode, "\tmovi R[255], M[8+R[0]]\n");
 			addToEndcode(generatedCode);
 			sprintf(generatedCode, "\tmovi M[R[255]], R[1]\n");
 			addToEndcode(generatedCode);
 
-		} else if (strcmp(current->quartet.operator, "par") == 0) {
+		} else if (strcmp(currentEndcode->quartet.operator, "par") == 0) {
 
 			struct entity *foundEntity;
-			foundEntity = lookupEntity(current->quartet.argument1);
+			foundEntity = lookupEntity(currentEndcode->quartet.argument1);
 
-			if (strcmp(current->quartet.argument2, "CV") == 0) {
+			if (strcmp(currentEndcode->quartet.argument2, "CV") == 0) {
 
 				int d = (scopeHead->framelength)+12+(4*i_counter);
 				i_counter++;
-				loadvr(current->quartet.argument1, 255);
+				loadvr(currentEndcode->quartet.argument1, 255);
 				sprintf(generatedCode, "\tmovi M[%d+R[0]], R[255]\n", d);
 				addToEndcode(generatedCode);
 
-			} else if (strcmp(current->quartet.argument2, "REF") == 0) {
+			} else if (strcmp(currentEndcode->quartet.argument2, "REF") == 0) {
 
 				int d = (scopeHead->framelength)+12+(4*i_counter);
 				i_counter++;
@@ -338,7 +347,7 @@ void endcodeGeneration() {
 
 					}
 
-				} else if (strcmp(current->quartet.argument2, "RET") == 0) {
+				} else if (strcmp(currentEndcode->quartet.argument2, "RET") == 0) {
 
 				sprintf(generatedCode, "\tmovi R[255], R[0]\n");
 				addToEndcode(generatedCode);
@@ -373,10 +382,10 @@ void endcodeGeneration() {
 				}
 			}
 
-		} else if (strcmp(current->quartet.operator, "call") == 0) {
+		} else if (strcmp(currentEndcode->quartet.operator, "call") == 0) {
 
 			struct entity *foundEntity;
-			foundEntity = lookupEntity(current->quartet.argument1);
+			foundEntity = lookupEntity(currentEndcode->quartet.argument1);
 
 			if(foundEntity->nestingLevel == scopeHead->nestingLevel) {
 
@@ -419,24 +428,25 @@ void endcodeGeneration() {
 			sprintf(generatedCode, "\tsubi R[0], R[0], R[255]\n");
 			addToEndcode(generatedCode);
 		
-		} else if (strcmp(current->quartet.operator, "end_block\n") == 0) {
+		} else if (strcmp(currentEndcode->quartet.operator, "end_block\n") == 0) {
 
 			sprintf(generatedCode, "\tjmp M[R[0]]\n");
 			addToEndcode(generatedCode);
 
-		} else if (strcmp(current->quartet.operator, "begin_block\n") == 0) {
+		} else if (strcmp(currentEndcode->quartet.operator, "begin_block\n") == 0) {
 
 			sprintf(generatedCode, "\t\n");
 			addToEndcode(generatedCode);
 
-		} else if (strcmp(current->quartet.operator, "halt\n") == 0) {
+		} else if (strcmp(currentEndcode->quartet.operator, "halt\n") == 0) {
 
 			sprintf(generatedCode, "\thalt\n");
 			addToEndcode(generatedCode);
 
 		}
 
-		current = current->next;
+		previousCurrentEndcode = currentEndcode;
+		currentEndcode = currentEndcode->next;
 	}
 
 	// Finally, print the generated list:

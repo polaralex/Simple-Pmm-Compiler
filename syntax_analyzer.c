@@ -346,11 +346,12 @@ void func() {
 
 			// Add the function to the current scope and add
 			// data to it:
-			addEntity(procedure_name, FUNCTION, 0, "0");
+			addEntity(procedure_name, TYPE_PROCEDURE, 0, "0");
+
 			struct entity *func_entity;
-			func_entity=lookupEntity(procedure_name);
+
+			func_entity = lookupEntity(procedure_name);
 			func_entity->startQuad = nextquadlabel;
-			func_entity->type = TYPE_PROCEDURE;
 
 			// Create a new scope for this function:
 			addScope(procedure_name);
@@ -368,11 +369,12 @@ void func() {
 
 			// Add the function to the current scope and add
 			// data to it:
-			addEntity(procedure_name, FUNCTION, 0, "0");
+			addEntity(procedure_name, TYPE_FUNCTION, 0, "0");
+
 			struct entity *func_entity;
-			func_entity=lookupEntity(procedure_name);
+
+			func_entity = lookupEntity(procedure_name);
 			func_entity->startQuad = nextquadlabel;
-			func_entity->type = TYPE_FUNCTION;
 
 			// Create a new scope for this function:
 			addScope(procedure_name);
@@ -773,7 +775,6 @@ void statement() {
 			char function_name[30];
 			strcpy(function_name, currentLexeme);
 			
-
 			actualpars();
 
 			genquad("call", function_name, "_", "_");
