@@ -90,10 +90,10 @@ void block(char function_name[30], int isItMainBlock) {
 
 		sequence();
 
-		genquad("end_block", function_name, "_", "_");
-
 		if ( isItMainBlock == 1 ) {
 			genquad("halt", "_", "_", "_");
+		} else {
+			genquad("end_block", function_name, "_", "_");
 		}
 
 		getNextToken();
