@@ -435,8 +435,10 @@ void endcodeGeneration() {
 		
 		} else if (strcmp(currentEndcode->quartet.operator, "end_block") == 0) {
 
-			sprintf(generatedCode, "\tjmp M[R[0]]\n");
-			addToEndcode(generatedCode);
+			if (areWeInMainBlock != 1) {
+				sprintf(generatedCode, "\tjmp M[R[0]]\n");
+				addToEndcode(generatedCode);
+			}
 
 		} else if (strcmp(currentEndcode->quartet.operator, "begin_block") == 0) {
 

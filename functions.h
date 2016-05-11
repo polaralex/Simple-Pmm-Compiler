@@ -31,6 +31,8 @@ typedef struct lexeme_list {
 
 static lexeme *lexeme_head;
 
+int areWeInMainBlock;
+
 typedef struct temporary_variables_list {
 	char variable[30];
 	struct temporary_variables_list *next;
