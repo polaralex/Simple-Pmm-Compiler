@@ -76,9 +76,7 @@ void genquad (char operator[30], char argument1[30], char argument2[30], char re
 	} else {
 
 		while( current->next != NULL ) {
-
 			current = current->next;
-
 		}
 
 		// We reach this point, when we are at the last node:
@@ -324,9 +322,7 @@ void exportQuadsToCFile(char nameoffile[64], quartet_node *quadsList) {
 
 				fprintf(cOutputFile, "%s", current_tmp->variable);
 
-				if( current_tmp->next == NULL ) {
-					fprintf(cOutputFile, "");
-				} else {
+				if( current_tmp->next != NULL ) {
 					fprintf(cOutputFile, ", ");
 				}
 

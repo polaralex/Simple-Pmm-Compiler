@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
 	strcat(filename, ".msim");
 	endcodeOutputFile = fopen(filename, "w");
 
-	// Then, continue to the Syntax Analyzer:
+	// Then, continue to the Syntax Analyzer (Endcode is also generated here):
 	program();
 
 	// Finally, create (and populate) the Text (and the C-lang equivalent) file containing the Quads List:

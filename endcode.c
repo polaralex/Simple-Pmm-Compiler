@@ -220,7 +220,7 @@ void endcodeGeneration() {
 
 		printf("Debug: Endcode Generation LOOP.\n");
 
-		sprintf(generatedCode, "L%d \n", currentEndcode->quartet.label);
+		sprintf(generatedCode, "L%d: \n", currentEndcode->quartet.label);
 		addToEndcode(generatedCode);
 
 		if(strcmp(currentEndcode->quartet.operator, "jump") == 0) {
