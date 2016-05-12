@@ -57,10 +57,6 @@ void program() {
 			strcpy(function_name, currentLexeme);
 			addScope(function_name);
 
-			// FOR CORRECT ENDCODE:
-			main_start = makelist(nextquad());
-			genquad("jump", "_", "_", "_");
-
 			block(function_name, IS_MAIN_PROGRAM);
 
 		} else {
@@ -100,12 +96,17 @@ void block(char function_name[30], int isItMainBlock) {
 			// FOR CORRECT ENDCODE (patching the first GOTO to send to MAIN):
 			if ( isItMainBlock == 1 ) {
 
+				// Holds the int label of the MAIN to be used in the
+				// first jump of the Endcode - and puts it in the first
+				// place (L100) of the Endcode for printing:
 				int mainQuad = nextquad();
-				backpatch(main_start, mainQuad);
-
 				char firstLineWithGoToMain[128];
-				sprintf(firstLineWithGoToMain, "\tjmp L%d\n", mainQuad);
-				strcpy(endcodeHead->next->line, firstLineWithGoToMain);
+				sprintf(firstLineWithGoToMain, "L100:\n\tjmp L%d\n", mainQuad);
+
+				struct endcode *firstEndcode = malloc(sizeof(struct endcode));
+				firstEndcode->next = endcodeHead;
+				strcpy(firstEndcode->line, firstLineWithGoToMain);
+				endcodeHead=firstEndcode;
 			}
 
 		genquad("begin_block", function_name, "_", "_");
