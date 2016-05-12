@@ -47,6 +47,10 @@ void backpatch(struct label_list * list, int label_number);
 int temp_number = 1;
 int areWeInMainBlock = 1;
 
+// This holds a JUMP to be backpatched that sends the program
+// to the label of the main:
+label_node *main_start;
+
 int nextquad() {
 	return(nextquadlabel);
 }
