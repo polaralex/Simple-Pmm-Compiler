@@ -58,6 +58,7 @@ int main(int argc, char *argv[]) {
 	endcodeOutputFile = fopen(filename, "w");
 
 	// Then, continue to the Syntax Analyzer (Endcode is also generated here):
+	checkForEndcodeQuadPointerIfAlreadyInitialized = 0;
 	program();
 
 	// Finally, create (and populate) the Text (and the C-lang equivalent) file containing the Quads List:
@@ -66,6 +67,11 @@ int main(int argc, char *argv[]) {
 
 	printf("[INTERMEDIATE CODE] Intermediate Code Generation is Complete.\n\n");
 	printf("[ENDCODE] Endcode Generation is Complete.\n\n");
+
+	// Finally, print the generated list:
+	printf("[ENDCODE] Exporting Endcode to File.\n\n");
+	exportEndcode(endcodeHead);
+	
 	printf("[DONE] Compiling is Complete.\n[DONE] Check the Exported files for the Produced Code :)\n\n");
 
 }

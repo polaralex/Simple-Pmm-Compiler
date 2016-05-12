@@ -45,6 +45,7 @@ label_node * merge(struct label_list * list1, struct label_list * list2);
 void backpatch(struct label_list * list, int label_number);
 
 int temp_number = 1;
+int areWeInMainBlock = 1;
 
 int nextquad() {
 	return(nextquadlabel);

@@ -455,9 +455,6 @@ void endcodeGeneration() {
 		currentEndcode = currentEndcode->next;
 	}
 
-	// Finally, print the generated list:
-	printf("[ENDCODE] Exporting Endcode to File.\n\n");
-	exportEndcode(endcodeHead);
 }
 
 
