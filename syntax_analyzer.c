@@ -59,10 +59,6 @@ void program() {
 
 			block(function_name, IS_MAIN_PROGRAM);
 
-			printSymbolTable();
-			endcodeGeneration();
-			deleteScope();
-
 		} else {
 			error("Program name expected.");
 		}
@@ -86,6 +82,17 @@ void block(char function_name[30], int isItMainBlock) {
 			subprograms();
 		}
 
+			// FOR ENDCODE:
+			if( isItMainBlock == 0 ){
+				struct entity *func_entity;
+
+				func_entity = lookupEntity(function_name);
+				func_entity->startQuad = nextquad();
+
+				// Create a new scope for this function:
+				addScope(function_name);
+			}
+
 		genquad("begin_block", function_name, "_", "_");
 
 		sequence();
@@ -97,6 +104,11 @@ void block(char function_name[30], int isItMainBlock) {
 		if ( isItMainBlock == 1 ) {
 			genquad("halt", "_", "_", "_");
 		}
+
+			// FOR ENDCODE:
+			printSymbolTable();
+			endcodeGeneration();
+			deleteScope();
 
 		getNextToken();
 
@@ -350,15 +362,8 @@ void func() {
 			// data to it:
 			addEntity(procedure_name, TYPE_PROCEDURE, 0, "0");
 
-			struct entity *func_entity;
-
-			func_entity = lookupEntity(procedure_name);
-			func_entity->startQuad = nextquadlabel;
-
-			// Create a new scope for this function:
-			addScope(procedure_name);
-
 			funcBody(procedure_name);
+
 		}
 
 	} else if (token == function_a) {
@@ -376,7 +381,9 @@ void func() {
 			struct entity *func_entity;
 
 			func_entity = lookupEntity(procedure_name);
-			func_entity->startQuad = nextquadlabel;
+			func_entity->startQuad = nextquad(); // TODO: Εδώ έχω πρόβλημα, γιατί όταν ζητάω το nextquad
+			// η αύξηση του αριθμού δεν έχει γίνει ακόμη
+			// και άρα ο αριθμός παραμένει ίδιος
 
 			// Create a new scope for this function:
 			addScope(procedure_name);
@@ -396,9 +403,6 @@ void funcBody(char procedure_name[30]) {
 	formalPars();
 	block(procedure_name, 0);
 
-	printSymbolTable();
-	endcodeGeneration();
-	deleteScope();
 }
 
 void formalPars() {
