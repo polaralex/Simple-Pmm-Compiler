@@ -12,3 +12,11 @@ This project was developed for the Compilers class at the Computer Science Depar
 3. intercode_functions.c: Contains required function for the intercode generation
 4. symbol_table.c: Holds the data about the Scopes and Names of Functions and Variables.
 5. endcode.c: Contains that functions required for the production of .msim files, containing the Endcode.
+
+# Usage:
+
+1. Compile "compiler.c" using GCC (tested on OSX and Ubuntu Linux)
+2. Open the "a.out" file using one of the provided test inputs (from the folder "/Inputs") as an argument.
+3. If everything worked ok (the input code was valid, according to the language's grammar), three output files should have been produced inside the "/Inputs" folder.
+
+Normally, the endcode .msim files work on a proprietary processor emulator called "Metasim", that is used in dept. of Computer Science, University of Ioannina. But, still, the final code is similar to many common endcode implementations.
