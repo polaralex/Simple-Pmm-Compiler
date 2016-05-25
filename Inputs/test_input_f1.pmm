@@ -1,0 +1,27 @@
+program testprogram {
+
+	var v1, v2, v3;
+
+	function nameOfFunction (in c1, inout c2, inout c3) {
+		
+		var r1, r2, r3;
+
+		r1 := 3;
+		r2 := 1;
+		r3 := r1;
+		
+		if ( r1 >= r3 and r3 <> 20) {
+			return (r1)
+		} else {
+			return (r2)
+		};
+
+		print(r2);
+	}
+
+	v1 := 24;
+	v2 := v3 - v1;
+
+	print(v1);
+
+} 

@@ -1,0 +1,17 @@
+program testprogram {
+
+	var v1, v2, v3;
+
+	v2 := 1;
+	v1 := 2;
+	v3 := 3;
+
+	while (v2 <= 100) {
+		v2 := v2 + v1;
+		print(v2);
+	}
+
+} 
+
+/*  As a result, we want an incrementing counter by two
+ 	until 100 */

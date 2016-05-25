@@ -1,0 +1,22 @@
+program testprogram {
+
+	var v1;
+
+	function nameOfFunction () {
+		
+		var r1, r2;
+
+		r1 := 3;
+		r2 := r1;
+
+		print(r1);
+		print(r2);
+	}
+
+	call nameOfFunction();
+
+	v1 := 5;
+
+	print(v1);
+
+} 
